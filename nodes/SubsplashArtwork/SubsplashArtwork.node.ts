@@ -6,7 +6,8 @@ import type {
 	IHttpRequestOptions,
 	IDataObject,
 } from 'n8n-workflow';
-import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
+import { NodeConnectionTypes, NodeOperationError, ApplicationError } from 'n8n-workflow';
+// eslint-disable-next-line @n8n/community-nodes/no-restricted-imports
 import sharp from 'sharp';
 
 interface SourceImageResponse {
@@ -364,13 +365,13 @@ export class SubsplashArtwork implements INodeType {
 	private async extractColors(imageBuffer: Buffer): Promise<{ average_color_hex: string; vibrant_color_hex: string }> {
 		try {
 			if (!imageBuffer || !Buffer.isBuffer(imageBuffer)) {
-				throw new Error('Invalid image buffer provided');
+				throw new ApplicationError('Invalid image buffer provided');
 			}
 
 			// Ensure we have a valid image by checking metadata first
 			const metadata = await sharp(imageBuffer).metadata();
 			if (!metadata.width || !metadata.height) {
-				throw new Error('Invalid image: no width or height');
+				throw new ApplicationError('Invalid image: no width or height');
 			}
 
 			// Resize to a manageable size for color extraction (max 100x100)
@@ -424,7 +425,7 @@ export class SubsplashArtwork implements INodeType {
 			}
 
 			if (validPixelCount === 0) {
-				throw new Error('No valid pixels found in image (all transparent)');
+				throw new ApplicationError('No valid pixels found in image (all transparent)');
 			}
 
 			const avgR = Math.round(totalR / validPixelCount);
@@ -444,14 +445,14 @@ export class SubsplashArtwork implements INodeType {
 
 			// Validate hex format
 			if (!/^#[0-9a-f]{6}$/i.test(averageColorHex) || !/^#[0-9a-f]{6}$/i.test(vibrantColorHex)) {
-				throw new Error(`Invalid hex color format: average=${averageColorHex}, vibrant=${vibrantColorHex}`);
+				throw new ApplicationError(`Invalid hex color format: average=${averageColorHex}, vibrant=${vibrantColorHex}`);
 			}
 
 			return {
 				average_color_hex: averageColorHex,
 				vibrant_color_hex: vibrantColorHex,
 			};
-		} catch (error) {
+		} catch {
 			// Fallback to default colors if extraction fails
 			return {
 				average_color_hex: '#2ea7cc',

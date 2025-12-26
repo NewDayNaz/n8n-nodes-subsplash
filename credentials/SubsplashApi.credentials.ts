@@ -195,7 +195,7 @@ export class SubsplashApi implements ICredentialType {
 				if (typeof response === 'string') {
 					try {
 						responseData = JSON.parse(response);
-					} catch (parseError) {
+					} catch {
 						throw new Error(
 							`Failed to parse authentication response: ${response.substring(0, 200)}`,
 						);
