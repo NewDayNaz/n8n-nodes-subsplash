@@ -171,7 +171,7 @@ export class SubsplashArtwork implements INodeType {
 					}
 
 					// Step 1: Create source image
-					const sourceImage = await (this as unknown as SubsplashArtwork).createSourceImage(
+					const sourceImage = await SubsplashArtwork.createSourceImage(
 						this,
 						baseUrl,
 						appKey,
@@ -184,7 +184,7 @@ export class SubsplashArtwork implements INodeType {
 					const presignedUrl = sourceImage._links.presigned_upload_url.href;
 
 					// Step 2: Upload to S3
-					await (this as unknown as SubsplashArtwork).uploadToS3(this, presignedUrl, imageData, contentType, itemIndex);
+					await SubsplashArtwork.uploadToS3(this, presignedUrl, imageData, contentType, itemIndex);
 
 					// Step 3: Create typed images
 					const created: IDataObject = {};
@@ -193,7 +193,7 @@ export class SubsplashArtwork implements INodeType {
 
 					for (const type of createTypes) {
 						try {
-							const typedImage = await (this as unknown as SubsplashArtwork).createTypedImage(
+							const typedImage = await SubsplashArtwork.createTypedImage(
 								this,
 								baseUrl,
 								appKey,
@@ -218,11 +218,11 @@ export class SubsplashArtwork implements INodeType {
 					let assigned = false;
 					if (!typedImageCreationFailed && imageIds.length > 0) {
 						try {
-							await (this as unknown as SubsplashArtwork).patchMediaItem(this, baseUrl, mediaItemId, imageIds, itemIndex);
+							await SubsplashArtwork.patchMediaItem(this, baseUrl, mediaItemId, imageIds, itemIndex);
 							assigned = true;
 						} catch (error) {
 							// Return created IDs even if assignment fails
-							const errorMessage = (this as unknown as SubsplashArtwork).extractErrorMessage(this, error);
+							const errorMessage = SubsplashArtwork.extractErrorMessage(this, error);
 							throw new NodeOperationError(this.getNode(), error, {
 								itemIndex,
 								description: `Failed to assign images to media item: ${errorMessage}`,
@@ -285,7 +285,7 @@ export class SubsplashArtwork implements INodeType {
 		return [returnData];
 	}
 
-	private async createSourceImage(
+	private static async createSourceImage(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		appKey: string,
@@ -317,7 +317,7 @@ export class SubsplashArtwork implements INodeType {
 			);
 			return response as SourceImageResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashArtwork.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to create source image: ${errorMessage}`,
@@ -325,7 +325,7 @@ export class SubsplashArtwork implements INodeType {
 		}
 	}
 
-	private async uploadToS3(
+	private static async uploadToS3(
 		context: IExecuteFunctions,
 		presignedUrl: string,
 		imageData: Buffer,
@@ -354,7 +354,7 @@ export class SubsplashArtwork implements INodeType {
 				});
 			}
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashArtwork.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `S3UploadError: ${errorMessage}`,
@@ -362,7 +362,7 @@ export class SubsplashArtwork implements INodeType {
 		}
 	}
 
-	private async extractColors(imageBuffer: Buffer): Promise<{ average_color_hex: string; vibrant_color_hex: string }> {
+	private static async extractColors(imageBuffer: Buffer): Promise<{ average_color_hex: string; vibrant_color_hex: string }> {
 		try {
 			if (!imageBuffer || !Buffer.isBuffer(imageBuffer)) {
 				throw new ApplicationError('Invalid image buffer provided');
@@ -461,7 +461,7 @@ export class SubsplashArtwork implements INodeType {
 		}
 	}
 
-	private async createTypedImage(
+	private static async createTypedImage(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		appKey: string,
@@ -473,7 +473,7 @@ export class SubsplashArtwork implements INodeType {
 		itemIndex: number,
 	): Promise<TypedImageResponse> {
 		// Extract colors from the image
-		const colors = await this.extractColors(imageData);
+		const colors = await SubsplashArtwork.extractColors(imageData);
 		
 		const options: IHttpRequestOptions = {
 			method: 'POST',
@@ -507,7 +507,7 @@ export class SubsplashArtwork implements INodeType {
 			);
 			return response as TypedImageResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashArtwork.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to create typed image "${type}": ${errorMessage}`,
@@ -515,7 +515,7 @@ export class SubsplashArtwork implements INodeType {
 		}
 	}
 
-	private async patchMediaItem(
+	private static async patchMediaItem(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		mediaItemId: string,
@@ -546,7 +546,7 @@ export class SubsplashArtwork implements INodeType {
 			);
 			return response as MediaItemResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashArtwork.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to patch media item: ${errorMessage}`,
@@ -554,7 +554,7 @@ export class SubsplashArtwork implements INodeType {
 		}
 	}
 
-	private extractErrorMessage(context: IExecuteFunctions, error: unknown): string {
+	private static extractErrorMessage(context: IExecuteFunctions, error: unknown): string {
 		if (error && typeof error === 'object' && 'response' in error) {
 			const errorResponse = error as {
 				response?: {

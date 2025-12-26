@@ -463,7 +463,7 @@ export class SubsplashPeople implements INodeType {
 						const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
 						const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
 
-						const response = await (this as unknown as SubsplashPeople).listProfiles(
+						const response = await SubsplashPeople.listProfiles(
 							this,
 							baseUrl,
 							appKey,
@@ -484,7 +484,7 @@ export class SubsplashPeople implements INodeType {
 					} else if (operation === 'get') {
 						const profileId = this.getNodeParameter('profileId', itemIndex) as string;
 
-						const response = await (this as unknown as SubsplashPeople).getProfile(
+						const response = await SubsplashPeople.getProfile(
 							this,
 							baseUrl,
 							profileId,
@@ -496,13 +496,13 @@ export class SubsplashPeople implements INodeType {
 							binary: items[itemIndex].binary,
 						});
 					} else if (operation === 'create') {
-						const requestBody = await (this as unknown as SubsplashPeople).buildProfileBody(
+						const requestBody = await SubsplashPeople.buildProfileBody(
 							this,
 							orgKey,
 							itemIndex,
 						);
 
-						const response = await (this as unknown as SubsplashPeople).createProfile(
+						const response = await SubsplashPeople.createProfile(
 							this,
 							baseUrl,
 							requestBody,
@@ -515,13 +515,13 @@ export class SubsplashPeople implements INodeType {
 						});
 					} else if (operation === 'update') {
 						const profileId = this.getNodeParameter('profileId', itemIndex) as string;
-						const requestBody = await (this as unknown as SubsplashPeople).buildProfileBody(
+						const requestBody = await SubsplashPeople.buildProfileBody(
 							this,
 							orgKey,
 							itemIndex,
 						);
 
-						const response = await (this as unknown as SubsplashPeople).updateProfile(
+						const response = await SubsplashPeople.updateProfile(
 							this,
 							baseUrl,
 							profileId,
@@ -539,7 +539,7 @@ export class SubsplashPeople implements INodeType {
 						const returnAll = this.getNodeParameter('returnAll', itemIndex, false) as boolean;
 						const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
 
-						const response = await (this as unknown as SubsplashPeople).listHouseholds(
+						const response = await SubsplashPeople.listHouseholds(
 							this,
 							baseUrl,
 							appKey,
@@ -559,7 +559,7 @@ export class SubsplashPeople implements INodeType {
 					} else if (operation === 'get') {
 						const householdId = this.getNodeParameter('householdId', itemIndex) as string;
 
-						const response = await (this as unknown as SubsplashPeople).getHousehold(
+						const response = await SubsplashPeople.getHousehold(
 							this,
 							baseUrl,
 							householdId,
@@ -571,13 +571,13 @@ export class SubsplashPeople implements INodeType {
 							binary: items[itemIndex].binary,
 						});
 					} else if (operation === 'create') {
-						const requestBody = await (this as unknown as SubsplashPeople).buildHouseholdBody(
+						const requestBody = await SubsplashPeople.buildHouseholdBody(
 							this,
 							orgKey,
 							itemIndex,
 						);
 
-						const response = await (this as unknown as SubsplashPeople).createHousehold(
+						const response = await SubsplashPeople.createHousehold(
 							this,
 							baseUrl,
 							requestBody,
@@ -590,13 +590,13 @@ export class SubsplashPeople implements INodeType {
 						});
 					} else if (operation === 'update') {
 						const householdId = this.getNodeParameter('householdId', itemIndex) as string;
-						const requestBody = await (this as unknown as SubsplashPeople).buildHouseholdBody(
+						const requestBody = await SubsplashPeople.buildHouseholdBody(
 							this,
 							orgKey,
 							itemIndex,
 						);
 
-						const response = await (this as unknown as SubsplashPeople).updateHousehold(
+						const response = await SubsplashPeople.updateHousehold(
 							this,
 							baseUrl,
 							householdId,
@@ -611,7 +611,7 @@ export class SubsplashPeople implements INodeType {
 					} else if (operation === 'delete') {
 						const householdId = this.getNodeParameter('householdId', itemIndex) as string;
 
-						await (this as unknown as SubsplashPeople).deleteHousehold(
+						await SubsplashPeople.deleteHousehold(
 							this,
 							baseUrl,
 							householdId,
@@ -644,7 +644,7 @@ export class SubsplashPeople implements INodeType {
 	}
 
 	// Profile methods
-	private async listProfiles(
+	private static async listProfiles(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		appKey: string,
@@ -700,7 +700,7 @@ export class SubsplashPeople implements INodeType {
 			);
 			return response as { _embedded?: { profiles?: ProfileResponse[] } };
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashPeople.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to list profiles: ${errorMessage}`,
@@ -708,7 +708,7 @@ export class SubsplashPeople implements INodeType {
 		}
 	}
 
-	private async getProfile(
+	private static async getProfile(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		profileId: string,
@@ -731,7 +731,7 @@ export class SubsplashPeople implements INodeType {
 			);
 			return response as ProfileResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashPeople.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to get profile: ${errorMessage}`,
@@ -739,7 +739,7 @@ export class SubsplashPeople implements INodeType {
 		}
 	}
 
-	private async buildProfileBody(
+	private static async buildProfileBody(
 		context: IExecuteFunctions,
 		orgKey: string,
 		itemIndex: number,
@@ -825,7 +825,7 @@ export class SubsplashPeople implements INodeType {
 		return requestBody;
 	}
 
-	private async createProfile(
+	private static async createProfile(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		requestBody: IDataObject,
@@ -850,7 +850,7 @@ export class SubsplashPeople implements INodeType {
 			);
 			return response as ProfileResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashPeople.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to create profile: ${errorMessage}`,
@@ -858,7 +858,7 @@ export class SubsplashPeople implements INodeType {
 		}
 	}
 
-	private async updateProfile(
+	private static async updateProfile(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		profileId: string,
@@ -884,7 +884,7 @@ export class SubsplashPeople implements INodeType {
 			);
 			return response as ProfileResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashPeople.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to update profile: ${errorMessage}`,
@@ -893,7 +893,7 @@ export class SubsplashPeople implements INodeType {
 	}
 
 	// Household methods
-	private async listHouseholds(
+	private static async listHouseholds(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		appKey: string,
@@ -935,7 +935,7 @@ export class SubsplashPeople implements INodeType {
 			);
 			return response as { _embedded?: { households?: HouseholdResponse[] } };
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashPeople.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to list households: ${errorMessage}`,
@@ -943,7 +943,7 @@ export class SubsplashPeople implements INodeType {
 		}
 	}
 
-	private async getHousehold(
+	private static async getHousehold(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		householdId: string,
@@ -966,7 +966,7 @@ export class SubsplashPeople implements INodeType {
 			);
 			return response as HouseholdResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashPeople.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to get household: ${errorMessage}`,
@@ -974,7 +974,7 @@ export class SubsplashPeople implements INodeType {
 		}
 	}
 
-	private async buildHouseholdBody(
+	private static async buildHouseholdBody(
 		context: IExecuteFunctions,
 		orgKey: string,
 		itemIndex: number,
@@ -1010,7 +1010,7 @@ export class SubsplashPeople implements INodeType {
 		return requestBody;
 	}
 
-	private async createHousehold(
+	private static async createHousehold(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		requestBody: IDataObject,
@@ -1035,7 +1035,7 @@ export class SubsplashPeople implements INodeType {
 			);
 			return response as HouseholdResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashPeople.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to create household: ${errorMessage}`,
@@ -1043,7 +1043,7 @@ export class SubsplashPeople implements INodeType {
 		}
 	}
 
-	private async updateHousehold(
+	private static async updateHousehold(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		householdId: string,
@@ -1069,7 +1069,7 @@ export class SubsplashPeople implements INodeType {
 			);
 			return response as HouseholdResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashPeople.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to update household: ${errorMessage}`,
@@ -1077,7 +1077,7 @@ export class SubsplashPeople implements INodeType {
 		}
 	}
 
-	private async deleteHousehold(
+	private static async deleteHousehold(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		householdId: string,
@@ -1095,7 +1095,7 @@ export class SubsplashPeople implements INodeType {
 		try {
 			await context.helpers.httpRequestWithAuthentication.call(context, 'subsplashApi', options);
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashPeople.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to delete household: ${errorMessage}`,
@@ -1103,7 +1103,7 @@ export class SubsplashPeople implements INodeType {
 		}
 	}
 
-	private extractErrorMessage(context: IExecuteFunctions, error: unknown): string {
+	private static extractErrorMessage(context: IExecuteFunctions, error: unknown): string {
 		if (error && typeof error === 'object' && 'response' in error) {
 			const errorResponse = error as {
 				response?: {

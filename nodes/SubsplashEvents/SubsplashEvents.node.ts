@@ -630,7 +630,7 @@ export class SubsplashEvents implements INodeType {
 						const returnAll = this.getNodeParameter('returnAll', itemIndex, false) as boolean;
 						const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
 
-						const response = await (this as unknown as SubsplashEvents).listCalendars(
+						const response = await SubsplashEvents.listCalendars(
 							this,
 							baseUrl,
 							appKey,
@@ -649,7 +649,7 @@ export class SubsplashEvents implements INodeType {
 					} else if (operation === 'get') {
 						const calendarId = this.getNodeParameter('calendarId', itemIndex) as string;
 
-						const response = await (this as unknown as SubsplashEvents).getCalendar(
+						const response = await SubsplashEvents.getCalendar(
 							this,
 							baseUrl,
 							calendarId,
@@ -661,13 +661,13 @@ export class SubsplashEvents implements INodeType {
 							binary: items[itemIndex].binary,
 						});
 					} else if (operation === 'create') {
-						const requestBody = await (this as unknown as SubsplashEvents).buildCalendarBody(
+						const requestBody = await SubsplashEvents.buildCalendarBody(
 							this,
 							appKey,
 							itemIndex,
 						);
 
-						const response = await (this as unknown as SubsplashEvents).createCalendar(
+						const response = await SubsplashEvents.createCalendar(
 							this,
 							baseUrl,
 							requestBody,
@@ -680,13 +680,13 @@ export class SubsplashEvents implements INodeType {
 						});
 					} else if (operation === 'update') {
 						const calendarId = this.getNodeParameter('calendarId', itemIndex) as string;
-						const requestBody = await (this as unknown as SubsplashEvents).buildCalendarBody(
+						const requestBody = await SubsplashEvents.buildCalendarBody(
 							this,
 							appKey,
 							itemIndex,
 						);
 
-						const response = await (this as unknown as SubsplashEvents).updateCalendar(
+						const response = await SubsplashEvents.updateCalendar(
 							this,
 							baseUrl,
 							calendarId,
@@ -701,7 +701,7 @@ export class SubsplashEvents implements INodeType {
 					} else if (operation === 'delete') {
 						const calendarId = this.getNodeParameter('calendarId', itemIndex) as string;
 
-						await (this as unknown as SubsplashEvents).deleteCalendar(
+						await SubsplashEvents.deleteCalendar(
 							this,
 							baseUrl,
 							calendarId,
@@ -718,7 +718,7 @@ export class SubsplashEvents implements INodeType {
 						const returnAll = this.getNodeParameter('returnAll', itemIndex, false) as boolean;
 						const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
 
-						const response = await (this as unknown as SubsplashEvents).listEvents(
+						const response = await SubsplashEvents.listEvents(
 							this,
 							baseUrl,
 							appKey,
@@ -737,7 +737,7 @@ export class SubsplashEvents implements INodeType {
 					} else if (operation === 'get') {
 						const eventId = this.getNodeParameter('eventId', itemIndex) as string;
 
-						const response = await (this as unknown as SubsplashEvents).getEvent(
+						const response = await SubsplashEvents.getEvent(
 							this,
 							baseUrl,
 							eventId,
@@ -749,13 +749,13 @@ export class SubsplashEvents implements INodeType {
 							binary: items[itemIndex].binary,
 						});
 					} else if (operation === 'create') {
-						const requestBody = await (this as unknown as SubsplashEvents).buildEventBody(
+						const requestBody = await SubsplashEvents.buildEventBody(
 							this,
 							appKey,
 							itemIndex,
 						);
 
-						const response = await (this as unknown as SubsplashEvents).createEvent(
+						const response = await SubsplashEvents.createEvent(
 							this,
 							baseUrl,
 							requestBody,
@@ -768,13 +768,13 @@ export class SubsplashEvents implements INodeType {
 						});
 					} else if (operation === 'update') {
 						const eventId = this.getNodeParameter('eventId', itemIndex) as string;
-						const requestBody = await (this as unknown as SubsplashEvents).buildEventBody(
+						const requestBody = await SubsplashEvents.buildEventBody(
 							this,
 							appKey,
 							itemIndex,
 						);
 
-						const response = await (this as unknown as SubsplashEvents).updateEvent(
+						const response = await SubsplashEvents.updateEvent(
 							this,
 							baseUrl,
 							eventId,
@@ -789,7 +789,7 @@ export class SubsplashEvents implements INodeType {
 					} else if (operation === 'delete') {
 						const eventId = this.getNodeParameter('eventId', itemIndex) as string;
 
-						await (this as unknown as SubsplashEvents).deleteEvent(
+						await SubsplashEvents.deleteEvent(
 							this,
 							baseUrl,
 							eventId,
@@ -806,7 +806,7 @@ export class SubsplashEvents implements INodeType {
 						const returnAll = this.getNodeParameter('returnAll', itemIndex, false) as boolean;
 						const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
 
-						const response = await (this as unknown as SubsplashEvents).listRepeatingEvents(
+						const response = await SubsplashEvents.listRepeatingEvents(
 							this,
 							baseUrl,
 							appKey,
@@ -825,7 +825,7 @@ export class SubsplashEvents implements INodeType {
 					} else if (operation === 'get') {
 						const repeatingEventId = this.getNodeParameter('repeatingEventId', itemIndex) as string;
 
-						const response = await (this as unknown as SubsplashEvents).getRepeatingEvent(
+						const response = await SubsplashEvents.getRepeatingEvent(
 							this,
 							baseUrl,
 							repeatingEventId,
@@ -837,13 +837,13 @@ export class SubsplashEvents implements INodeType {
 							binary: items[itemIndex].binary,
 						});
 					} else if (operation === 'create') {
-						const requestBody = await (this as unknown as SubsplashEvents).buildRepeatingEventBody(
+						const requestBody = await SubsplashEvents.buildRepeatingEventBody(
 							this,
 							appKey,
 							itemIndex,
 						);
 
-						const response = await (this as unknown as SubsplashEvents).createRepeatingEvent(
+						const response = await SubsplashEvents.createRepeatingEvent(
 							this,
 							baseUrl,
 							requestBody,
@@ -856,13 +856,13 @@ export class SubsplashEvents implements INodeType {
 						});
 					} else if (operation === 'update') {
 						const repeatingEventId = this.getNodeParameter('repeatingEventId', itemIndex) as string;
-						const requestBody = await (this as unknown as SubsplashEvents).buildRepeatingEventBody(
+						const requestBody = await SubsplashEvents.buildRepeatingEventBody(
 							this,
 							appKey,
 							itemIndex,
 						);
 
-						const response = await (this as unknown as SubsplashEvents).updateRepeatingEvent(
+						const response = await SubsplashEvents.updateRepeatingEvent(
 							this,
 							baseUrl,
 							repeatingEventId,
@@ -877,7 +877,7 @@ export class SubsplashEvents implements INodeType {
 					} else if (operation === 'delete') {
 						const repeatingEventId = this.getNodeParameter('repeatingEventId', itemIndex) as string;
 
-						await (this as unknown as SubsplashEvents).deleteRepeatingEvent(
+						await SubsplashEvents.deleteRepeatingEvent(
 							this,
 							baseUrl,
 							repeatingEventId,
@@ -910,7 +910,7 @@ export class SubsplashEvents implements INodeType {
 	}
 
 	// Calendar methods
-	private async listCalendars(
+	private static async listCalendars(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		appKey: string,
@@ -947,7 +947,7 @@ export class SubsplashEvents implements INodeType {
 			);
 			return response as { _embedded?: { calendars?: CalendarResponse[] } };
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to list calendars: ${errorMessage}`,
@@ -955,7 +955,7 @@ export class SubsplashEvents implements INodeType {
 		}
 	}
 
-	private async getCalendar(
+	private static async getCalendar(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		calendarId: string,
@@ -978,7 +978,7 @@ export class SubsplashEvents implements INodeType {
 			);
 			return response as CalendarResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to get calendar: ${errorMessage}`,
@@ -986,7 +986,7 @@ export class SubsplashEvents implements INodeType {
 		}
 	}
 
-	private async buildCalendarBody(
+	private static async buildCalendarBody(
 		context: IExecuteFunctions,
 		appKey: string,
 		itemIndex: number,
@@ -1023,7 +1023,7 @@ export class SubsplashEvents implements INodeType {
 		return requestBody;
 	}
 
-	private async createCalendar(
+	private static async createCalendar(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		requestBody: IDataObject,
@@ -1048,7 +1048,7 @@ export class SubsplashEvents implements INodeType {
 			);
 			return response as CalendarResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to create calendar: ${errorMessage}`,
@@ -1056,7 +1056,7 @@ export class SubsplashEvents implements INodeType {
 		}
 	}
 
-	private async updateCalendar(
+	private static async updateCalendar(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		calendarId: string,
@@ -1082,7 +1082,7 @@ export class SubsplashEvents implements INodeType {
 			);
 			return response as CalendarResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to update calendar: ${errorMessage}`,
@@ -1090,7 +1090,7 @@ export class SubsplashEvents implements INodeType {
 		}
 	}
 
-	private async deleteCalendar(
+	private static async deleteCalendar(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		calendarId: string,
@@ -1108,7 +1108,7 @@ export class SubsplashEvents implements INodeType {
 		try {
 			await context.helpers.httpRequestWithAuthentication.call(context, 'subsplashApi', options);
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to delete calendar: ${errorMessage}`,
@@ -1117,7 +1117,7 @@ export class SubsplashEvents implements INodeType {
 	}
 
 	// Event methods
-	private async listEvents(
+	private static async listEvents(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		appKey: string,
@@ -1154,7 +1154,7 @@ export class SubsplashEvents implements INodeType {
 			);
 			return response as { _embedded?: { events?: EventResponse[] } };
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to list events: ${errorMessage}`,
@@ -1162,7 +1162,7 @@ export class SubsplashEvents implements INodeType {
 		}
 	}
 
-	private async getEvent(
+	private static async getEvent(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		eventId: string,
@@ -1185,7 +1185,7 @@ export class SubsplashEvents implements INodeType {
 			);
 			return response as EventResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to get event: ${errorMessage}`,
@@ -1193,7 +1193,7 @@ export class SubsplashEvents implements INodeType {
 		}
 	}
 
-	private async buildEventBody(
+	private static async buildEventBody(
 		context: IExecuteFunctions,
 		appKey: string,
 		itemIndex: number,
@@ -1264,7 +1264,7 @@ export class SubsplashEvents implements INodeType {
 		return requestBody;
 	}
 
-	private async createEvent(
+	private static async createEvent(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		requestBody: IDataObject,
@@ -1289,7 +1289,7 @@ export class SubsplashEvents implements INodeType {
 			);
 			return response as EventResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to create event: ${errorMessage}`,
@@ -1297,7 +1297,7 @@ export class SubsplashEvents implements INodeType {
 		}
 	}
 
-	private async updateEvent(
+	private static async updateEvent(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		eventId: string,
@@ -1323,7 +1323,7 @@ export class SubsplashEvents implements INodeType {
 			);
 			return response as EventResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to update event: ${errorMessage}`,
@@ -1331,7 +1331,7 @@ export class SubsplashEvents implements INodeType {
 		}
 	}
 
-	private async deleteEvent(
+	private static async deleteEvent(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		eventId: string,
@@ -1349,7 +1349,7 @@ export class SubsplashEvents implements INodeType {
 		try {
 			await context.helpers.httpRequestWithAuthentication.call(context, 'subsplashApi', options);
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to delete event: ${errorMessage}`,
@@ -1358,7 +1358,7 @@ export class SubsplashEvents implements INodeType {
 	}
 
 	// Repeating Event methods
-	private async listRepeatingEvents(
+	private static async listRepeatingEvents(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		appKey: string,
@@ -1395,7 +1395,7 @@ export class SubsplashEvents implements INodeType {
 			);
 			return response as { _embedded?: { 'repeating-events'?: RepeatingEventResponse[] } };
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to list repeating events: ${errorMessage}`,
@@ -1403,7 +1403,7 @@ export class SubsplashEvents implements INodeType {
 		}
 	}
 
-	private async getRepeatingEvent(
+	private static async getRepeatingEvent(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		repeatingEventId: string,
@@ -1426,7 +1426,7 @@ export class SubsplashEvents implements INodeType {
 			);
 			return response as RepeatingEventResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to get repeating event: ${errorMessage}`,
@@ -1434,7 +1434,7 @@ export class SubsplashEvents implements INodeType {
 		}
 	}
 
-	private async buildRepeatingEventBody(
+	private static async buildRepeatingEventBody(
 		context: IExecuteFunctions,
 		appKey: string,
 		itemIndex: number,
@@ -1466,7 +1466,7 @@ export class SubsplashEvents implements INodeType {
 		return requestBody;
 	}
 
-	private async createRepeatingEvent(
+	private static async createRepeatingEvent(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		requestBody: IDataObject,
@@ -1491,7 +1491,7 @@ export class SubsplashEvents implements INodeType {
 			);
 			return response as RepeatingEventResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to create repeating event: ${errorMessage}`,
@@ -1499,7 +1499,7 @@ export class SubsplashEvents implements INodeType {
 		}
 	}
 
-	private async updateRepeatingEvent(
+	private static async updateRepeatingEvent(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		repeatingEventId: string,
@@ -1525,7 +1525,7 @@ export class SubsplashEvents implements INodeType {
 			);
 			return response as RepeatingEventResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to update repeating event: ${errorMessage}`,
@@ -1533,7 +1533,7 @@ export class SubsplashEvents implements INodeType {
 		}
 	}
 
-	private async deleteRepeatingEvent(
+	private static async deleteRepeatingEvent(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		repeatingEventId: string,
@@ -1551,7 +1551,7 @@ export class SubsplashEvents implements INodeType {
 		try {
 			await context.helpers.httpRequestWithAuthentication.call(context, 'subsplashApi', options);
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashEvents.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to delete repeating event: ${errorMessage}`,
@@ -1559,7 +1559,7 @@ export class SubsplashEvents implements INodeType {
 		}
 	}
 
-	private extractErrorMessage(context: IExecuteFunctions, error: unknown): string {
+	private static extractErrorMessage(context: IExecuteFunctions, error: unknown): string {
 		if (error && typeof error === 'object' && 'response' in error) {
 			const errorResponse = error as {
 				response?: {

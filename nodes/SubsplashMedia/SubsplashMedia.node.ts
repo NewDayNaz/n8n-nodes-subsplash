@@ -510,7 +510,7 @@ export class SubsplashMedia implements INodeType {
 					const mediaItemId = this.getNodeParameter('mediaItemId', itemIndex) as string;
 					const include = this.getNodeParameter('include', itemIndex, []) as string[];
 
-					const response = await (this as unknown as SubsplashMedia).getMediaItem(
+					const response = await SubsplashMedia.getMediaItem(
 						this,
 						baseUrl,
 						mediaItemId,
@@ -531,7 +531,7 @@ export class SubsplashMedia implements INodeType {
 					const sort = this.getNodeParameter('sort', itemIndex, '-published_at') as string;
 					const include = this.getNodeParameter('include', itemIndex, []) as string[];
 
-					const response = await (this as unknown as SubsplashMedia).listMediaItems(
+					const response = await SubsplashMedia.listMediaItems(
 						this,
 						baseUrl,
 						appKey,
@@ -552,7 +552,7 @@ export class SubsplashMedia implements INodeType {
 					}
 				} else if (operation === 'create') {
 					// Get all the same fields as update
-					const requestBody = await (this as unknown as SubsplashMedia).buildMediaItemBody(
+					const requestBody = await SubsplashMedia.buildMediaItemBody(
 						this,
 						appKey,
 						itemIndex,
@@ -560,7 +560,7 @@ export class SubsplashMedia implements INodeType {
 
 					const include = this.getNodeParameter('include', itemIndex, []) as string[];
 
-					const response = await (this as unknown as SubsplashMedia).createMediaItem(
+					const response = await SubsplashMedia.createMediaItem(
 						this,
 						baseUrl,
 						requestBody,
@@ -576,14 +576,14 @@ export class SubsplashMedia implements INodeType {
 					returnData.push(outputItem);
 				} else if (operation === 'update') {
 					const mediaItemId = this.getNodeParameter('mediaItemId', itemIndex) as string;
-					const requestBody = await (this as unknown as SubsplashMedia).buildMediaItemBody(
+					const requestBody = await SubsplashMedia.buildMediaItemBody(
 						this,
 						appKey,
 						itemIndex,
 					);
 					const include = this.getNodeParameter('include', itemIndex, []) as string[];
 
-					const response = await (this as unknown as SubsplashMedia).updateMediaItem(
+					const response = await SubsplashMedia.updateMediaItem(
 						this,
 						baseUrl,
 						mediaItemId,
@@ -601,7 +601,7 @@ export class SubsplashMedia implements INodeType {
 				} else if (operation === 'delete') {
 					const mediaItemId = this.getNodeParameter('mediaItemId', itemIndex) as string;
 
-					await (this as unknown as SubsplashMedia).deleteMediaItem(
+					await SubsplashMedia.deleteMediaItem(
 						this,
 						baseUrl,
 						mediaItemId,
@@ -632,7 +632,7 @@ export class SubsplashMedia implements INodeType {
 		return [returnData];
 	}
 
-	private async buildMediaItemBody(
+	private static async buildMediaItemBody(
 		context: IExecuteFunctions,
 		appKey: string,
 		itemIndex: number,
@@ -796,7 +796,7 @@ export class SubsplashMedia implements INodeType {
 		return requestBody;
 	}
 
-	private async getMediaItem(
+	private static async getMediaItem(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		mediaItemId: string,
@@ -826,7 +826,7 @@ export class SubsplashMedia implements INodeType {
 			);
 			return response as MediaItemResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashMedia.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to get media item: ${errorMessage}`,
@@ -834,7 +834,7 @@ export class SubsplashMedia implements INodeType {
 		}
 	}
 
-	private async listMediaItems(
+	private static async listMediaItems(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		appKey: string,
@@ -902,7 +902,7 @@ export class SubsplashMedia implements INodeType {
 			);
 			return response as { _embedded?: { 'media-items'?: MediaItemResponse[] }; total?: number };
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashMedia.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to list media items: ${errorMessage}`,
@@ -910,7 +910,7 @@ export class SubsplashMedia implements INodeType {
 		}
 	}
 
-	private async createMediaItem(
+	private static async createMediaItem(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		requestBody: IDataObject,
@@ -942,7 +942,7 @@ export class SubsplashMedia implements INodeType {
 			);
 			return response as MediaItemResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashMedia.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to create media item: ${errorMessage}`,
@@ -950,7 +950,7 @@ export class SubsplashMedia implements INodeType {
 		}
 	}
 
-	private async deleteMediaItem(
+	private static async deleteMediaItem(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		mediaItemId: string,
@@ -968,7 +968,7 @@ export class SubsplashMedia implements INodeType {
 		try {
 			await context.helpers.httpRequestWithAuthentication.call(context, 'subsplashApi', options);
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashMedia.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to delete media item: ${errorMessage}`,
@@ -976,7 +976,7 @@ export class SubsplashMedia implements INodeType {
 		}
 	}
 
-	private async updateMediaItem(
+	private static async updateMediaItem(
 		context: IExecuteFunctions,
 		baseUrl: string,
 		mediaItemId: string,
@@ -1009,7 +1009,7 @@ export class SubsplashMedia implements INodeType {
 			);
 			return response as MediaItemResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(context, error);
+			const errorMessage = SubsplashMedia.extractErrorMessage(context, error);
 			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to update media item: ${errorMessage}`,
@@ -1017,7 +1017,7 @@ export class SubsplashMedia implements INodeType {
 		}
 	}
 
-	private extractErrorMessage(context: IExecuteFunctions, error: unknown): string {
+	private static extractErrorMessage(context: IExecuteFunctions, error: unknown): string {
 		if (error && typeof error === 'object' && 'response' in error) {
 			const errorResponse = error as {
 				response?: {
