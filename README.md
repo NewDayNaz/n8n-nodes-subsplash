@@ -1,247 +1,238 @@
-![Banner image](https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png)
+# n8n-nodes-subsplash
 
-# n8n-nodes-starter
+This is an n8n community node package for [Subsplash](https://subsplash.com/). It enables you to upload artwork, manage media items (sermons), and interact with the Subsplash API from your n8n workflows.
 
-This starter repository helps you build custom integrations for [n8n](https://n8n.io). It includes example nodes, credentials, the node linter, and all the tooling you need to get started.
+Subsplash is a platform for churches and ministries to manage media content, including sermons, podcasts, and other audio/video content.
 
-## Quick Start
+[n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
-> [!TIP]
-> **New to building n8n nodes?** The fastest way to get started is with `npm create @n8n/node`. This command scaffolds a complete node package for you using the [@n8n/node-cli](https://www.npmjs.com/package/@n8n/node-cli).
+[Installation](#installation)  
+[Operations](#operations)  
+[Credentials](#credentials)  
+[Compatibility](#compatibility)  
+[Usage](#usage)  
+[Resources](#resources)
 
-**To create a new node package from scratch:**
+## Installation
 
-```bash
-npm create @n8n/node
+Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
+
+In n8n, go to **Settings** → **Community Nodes** → **Install** and enter:
+
+```
+n8n-nodes-subsplash
 ```
 
-**Already using this starter? Start developing with:**
+Or install via npm:
 
 ```bash
-npm run dev
+npm install n8n-nodes-subsplash
 ```
 
-This starts n8n with your nodes loaded and hot reload enabled.
+## Operations
 
-## What's Included
+### Subsplash Artwork: Upload & Attach
 
-This starter repository includes two example nodes to learn from:
+Upload custom artwork to Subsplash and assign it to an existing media item.
 
-- **[Example Node](nodes/Example/)** - A simple starter node that shows the basic structure with a custom `execute` method
-- **[GitHub Issues Node](nodes/GithubIssues/)** - A complete, production-ready example built using the **declarative style**:
-  - **Low-code approach** - Define operations declaratively without writing request logic
-  - Multiple resources (Issues, Comments)
-  - Multiple operations (Get, Get All, Create)
-  - Two authentication methods (OAuth2 and Personal Access Token)
-  - List search functionality for dynamic dropdowns
-  - Proper error handling and typing
-  - Ideal for HTTP API-based integrations
+**Operation:**
+- **Upload & Assign Artwork** - Complete workflow that:
+  1. Creates a source image and obtains a presigned S3 URL
+  2. Uploads image bytes to S3 with required headers
+  3. Creates typed images (wide, square, banner) from the source
+  4. Patches the media item to assign the images
+  5. Verifies success via CDN
 
-> [!TIP]
-> The declarative/low-code style (used in GitHub Issues) is the recommended approach for building nodes that interact with HTTP APIs. It significantly reduces boilerplate code and handles requests automatically.
+**Parameters:**
+- **Media Item ID** (required) - Target media item UUID
+- **Image Binary Property** (default: "data") - Name of binary property containing image
+- **Content Type** - PNG or JPEG
+- **Image Types to Create** - Select which types to create (wide, square, banner)
+- **Title** - Optional title (defaults to filename if available)
 
-Browse these examples to understand both approaches, then modify them or create your own.
+### Subsplash Media
 
-## Finding Inspiration
+Update and manage Subsplash media items (sermons).
 
-Looking for more examples? Check out these resources:
+**Operation:**
+- **Update Media Item** - Update an existing media item with:
+  - Title, Subtitle, Description
+  - Date
+  - Speakers (max 3, formatted as tags)
+  - Topics (max 10, formatted as tags)
+  - Scriptures (OSIS format, comma-separated)
+  - Speaker (direct field)
+  - External Audio/Video URLs
+  - Auto Publish setting
+  - Status (Draft, Published, Unlisted)
+  - Images (assign multiple images with types)
 
-- **[npm Community Nodes](https://www.npmjs.com/search?q=keywords:n8n-community-node-package)** - Browse thousands of community-built nodes on npm using the `n8n-community-node-package` tag
-- **[n8n Built-in Nodes](https://github.com/n8n-io/n8n/tree/master/packages/nodes-base/nodes)** - Study the source code of n8n's official nodes for production-ready patterns and best practices
-- **[n8n Credentials](https://github.com/n8n-io/n8n/tree/master/packages/nodes-base/credentials)** - See how authentication is implemented for various services
+**Parameters:**
+- **Media Item ID** (required) - Subsplash media item ID to update
+- All other fields are optional - only non-empty values are sent to the API
 
-These are excellent resources to understand how to structure your nodes, handle different API patterns, and implement advanced features.
+## Credentials
 
-## Prerequisites
+This node requires Subsplash API credentials. You can authenticate using one of two methods:
 
-Before you begin, install the following on your development machine:
+### Authentication Method 1: Email/Password (v1) - Recommended
 
-### Required
+Simple authentication using email and password.
 
-- **[Node.js](https://nodejs.org/)** (v22 or higher) and npm
-  - Linux/Mac/WSL: Install via [nvm](https://github.com/nvm-sh/nvm)
-  - Windows: Follow [Microsoft's NodeJS guide](https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-windows)
-- **[git](https://git-scm.com/downloads)**
+**Required Fields:**
+- **Base URL** - Default: `https://core.subsplash.com`
+- **Email** - Your Subsplash account email
+- **Password** - Your Subsplash account password
+- **Scope** - Optional, defaults to `app:{APP_KEY}` format
+- **App Key** (required) - Your Subsplash app key (e.g., "2T3DTM", "9XTSHD")
 
-### Recommended
+### Authentication Method 2: ROPC with Client Credentials (v2)
 
-- Follow n8n's [development environment setup guide](https://docs.n8n.io/integrations/creating-nodes/build/node-development-environment/)
+Resource Owner Password Credentials flow with OAuth client credentials.
 
-> [!NOTE]
-> The `@n8n/node-cli` is included as a dev dependency and will be installed automatically when you run `npm install`. The CLI includes n8n for local development, so you don't need to install n8n globally.
+**Required Fields:**
+- **Base URL** - Default: `https://core.subsplash.com`
+- **Client ID** - OAuth client ID
+- **Client Secret** - OAuth client secret
+- **Username (Email)** - Your Subsplash account email
+- **Password** - Your Subsplash account password
+- **Scope** - Default: `media:read media:write live:write`
+- **App Key** (required) - Your Subsplash app key
 
-## Getting Started with this Starter
+### Getting Your Credentials
 
-Follow these steps to create your own n8n community node package:
+1. **App Key**: Found in your Subsplash dashboard settings
+2. **OAuth Credentials** (for v2): Contact Subsplash support or check your developer dashboard
+3. **Email/Password**: Your Subsplash account credentials
 
-### 1. Create Your Repository
+### Token Management
 
-[Generate a new repository](https://github.com/n8n-io/n8n-nodes-starter/generate) from this template, then clone it:
+- Tokens are automatically obtained via OAuth
+- Tokens are cached with automatic refresh (30-second buffer before expiry)
+- No manual token management required
 
-```bash
-git clone https://github.com/<your-organization>/<your-repo-name>.git
-cd <your-repo-name>
-```
+## Compatibility
 
-### 2. Install Dependencies
+- **Minimum n8n version**: 1.0+
+- **n8n API version**: 1
+- **Node.js**: v22 or higher (for development)
 
-```bash
-npm install
-```
+## Usage
 
-This installs all required dependencies including the `@n8n/node-cli`.
+### Example: Upload Artwork to Media Item
 
-### 3. Explore the Examples
+1. Add a **Subsplash Artwork: Upload & Attach** node to your workflow
+2. Configure credentials (see [Credentials](#credentials) above)
+3. Set the **Media Item ID** of the target sermon/media item
+4. Provide image binary data (from file, URL, or previous node)
+5. Select which image types to create (wide, square, banner)
+6. Execute the workflow
 
-Browse the example nodes in [nodes/](nodes/) and [credentials/](credentials/) to understand the structure:
+The node will:
+- Upload the image to Subsplash
+- Create the specified image types
+- Assign them to the media item
+- Return the created image IDs and verification status
 
-- Start with [nodes/Example/](nodes/Example/) for a basic node
-- Study [nodes/GithubIssues/](nodes/GithubIssues/) for a real-world implementation
+### Example: Update Media Item
 
-### 4. Build Your Node
+1. Add a **Subsplash Media** node to your workflow
+2. Configure credentials
+3. Set the **Media Item ID** to update
+4. Fill in any fields you want to update (title, speakers, topics, etc.)
+5. Execute the workflow
 
-Edit the example nodes to fit your use case, or create new node files by copying the structure from [nodes/Example/](nodes/Example/).
+**Note:** Only fields with values will be sent to the API. Empty fields are ignored.
 
-> [!TIP]
-> If you want to scaffold a completely new node package, use `npm create @n8n/node` to start fresh with the CLI's interactive generator.
+### Example: Update with Speakers and Topics
 
-### 5. Configure Your Package
+Speakers and topics are automatically formatted as tags:
+- Speakers: `speaker:John Doe` (max 3)
+- Topics: `topic:Faith` (max 10)
 
-Update `package.json` with your details:
+Enter comma-separated values:
+- **Speakers**: `John Doe, Jane Smith`
+- **Topics**: `Faith, Hope, Love`
 
-- `name` - Your package name (must start with `n8n-nodes-`)
-- `author` - Your name and email
-- `repository` - Your repository URL
-- `description` - What your node does
+### Example: Update with Scriptures
 
-Make sure your node is registered in the `n8n.nodes` array.
-
-### 6. Develop and Test Locally
-
-Start n8n with your node loaded:
-
-```bash
-npm run dev
-```
-
-This command runs `n8n-node dev` which:
-
-- Builds your node with watch mode
-- Starts n8n with your node available
-- Automatically rebuilds when you make changes
-- Opens n8n in your browser (usually http://localhost:5678)
-
-You can now test your node in n8n workflows!
-
-> [!NOTE]
-> Learn more about CLI commands in the [@n8n/node-cli documentation](https://www.npmjs.com/package/@n8n/node-cli).
-
-### 7. Lint Your Code
-
-Check for errors:
-
-```bash
-npm run lint
-```
-
-Auto-fix issues when possible:
-
-```bash
-npm run lint:fix
-```
-
-### 8. Build for Production
-
-When ready to publish:
-
-```bash
-npm run build
-```
-
-This compiles your TypeScript code to the `dist/` folder.
-
-### 9. Prepare for Publishing
-
-Before publishing:
-
-1. **Update documentation**: Replace this README with your node's documentation. Use [README_TEMPLATE.md](README_TEMPLATE.md) as a starting point.
-2. **Update the LICENSE**: Add your details to the [LICENSE](LICENSE.md) file.
-3. **Test thoroughly**: Ensure your node works in different scenarios.
-
-### 10. Publish to npm
-
-Publish your package to make it available to the n8n community:
-
-```bash
-npm publish
-```
-
-Learn more about [publishing to npm](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry).
-
-### 11. Submit for Verification (Optional)
-
-Get your node verified for n8n Cloud:
-
-1. Ensure your node meets the [requirements](https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/):
-   - Uses MIT license ✅ (included in this starter)
-   - No external package dependencies
-   - Follows n8n's design guidelines
-   - Passes quality and security review
-
-2. Submit through the [n8n Creator Portal](https://creators.n8n.io/nodes)
-
-**Benefits of verification:**
-
-- Available directly in n8n Cloud
-- Discoverable in the n8n nodes panel
-- Verified badge for quality assurance
-- Increased visibility in the n8n community
-
-## Available Scripts
-
-This starter includes several npm scripts to streamline development:
-
-| Script                | Description                                                      |
-| --------------------- | ---------------------------------------------------------------- |
-| `npm run dev`         | Start n8n with your node and watch for changes (runs `n8n-node dev`) |
-| `npm run build`       | Compile TypeScript to JavaScript for production (runs `n8n-node build`) |
-| `npm run build:watch` | Build in watch mode (auto-rebuild on changes)                    |
-| `npm run lint`        | Check your code for errors and style issues (runs `n8n-node lint`) |
-| `npm run lint:fix`    | Automatically fix linting issues when possible (runs `n8n-node lint --fix`) |
-| `npm run release`     | Create a new release (runs `n8n-node release`)                   |
-
-> [!TIP]
-> These scripts use the [@n8n/node-cli](https://www.npmjs.com/package/@n8n/node-cli) under the hood. You can also run CLI commands directly, e.g., `npx n8n-node dev`.
-
-## Troubleshooting
-
-### My node doesn't appear in n8n
-
-1. Make sure you ran `npm install` to install dependencies
-2. Check that your node is listed in `package.json` under `n8n.nodes`
-3. Restart the dev server with `npm run dev`
-4. Check the console for any error messages
-
-### Linting errors
-
-Run `npm run lint:fix` to automatically fix most common issues. For remaining errors, check the [n8n node development guidelines](https://docs.n8n.io/integrations/creating-nodes/).
-
-### TypeScript errors
-
-Make sure you're using Node.js v22 or higher and have run `npm install` to get all type definitions.
+Enter OSIS format references, comma-separated:
+- **Scriptures**: `Gen.1.1,John.3.16,1Cor.13.1`
 
 ## Resources
 
-- **[n8n Node Documentation](https://docs.n8n.io/integrations/creating-nodes/)** - Complete guide to building nodes
-- **[n8n Community Forum](https://community.n8n.io/)** - Get help and share your nodes
-- **[@n8n/node-cli Documentation](https://www.npmjs.com/package/@n8n/node-cli)** - CLI tool reference
-- **[n8n Creator Portal](https://creators.n8n.io/nodes)** - Submit your node for verification
-- **[Submit Community Nodes Guide](https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/)** - Verification requirements and process
+- [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
+- [Subsplash Developer Documentation](https://developer.subsplash.com)
+- [n8n Node Documentation](https://docs.n8n.io/integrations/creating-nodes/)
+- [n8n Community Forum](https://community.n8n.io/)
+
+## Development
+
+### Prerequisites
+
+- Node.js v22 or higher
+- npm
+
+### Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+### Build
+
+```bash
+# Build for production
+npm run build
+
+# Lint code
+npm run lint
+
+# Fix linting issues
+npm run lint:fix
+```
+
+## Known Limitations
+
+- Image uploads require valid binary data
+- Presigned URLs expire quickly - used immediately after creation
+- Speaker tags limited to 3, topic tags limited to 10
+- Some fields may require specific formats (e.g., OSIS for scriptures)
+
+## Error Handling
+
+The nodes include comprehensive error handling:
+
+- **S3 Upload Errors**: Marked as `S3UploadError` with endpoint and status details
+- **Partial Success**: For artwork uploads, partial successes are collected if some image types fail
+- **Error Messages**: Include endpoint, HTTP status, and response body snippets (≤1KB)
+- **Continue on Fail**: Supported for batch operations
+
+## Security
+
+- All credentials are stored securely by n8n
+- Bearer tokens are handled via OAuth with automatic refresh
+- No sensitive data is logged verbatim
+- Passwords are masked in the UI
+
+## Version History
+
+### 0.1.0
+
+- Initial release
+- Subsplash Artwork: Upload & Attach node
+- Subsplash Media: Update Media Item operation
+- Support for both Email/Password (v1) and ROPC (v2) authentication
+- Full MediaItem field support
 
 ## Contributing
 
-Have suggestions for improving this starter? [Open an issue](https://github.com/n8n-io/n8n-nodes-starter/issues) or submit a pull request!
+Contributions are welcome! Please open an issue or submit a pull request.
 
 ## License
 
-[MIT](https://github.com/n8n-io/n8n-nodes-starter/blob/master/LICENSE.md)
+[MIT](LICENSE.md)

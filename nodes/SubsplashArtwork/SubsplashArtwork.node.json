@@ -1,0 +1,19 @@
+{
+	"node": "n8n-nodes-subsplash-artwork",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Marketing", "Media"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://developer.subsplash.com"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://developer.subsplash.com"
+			}
+		]
+	}
+}
+
