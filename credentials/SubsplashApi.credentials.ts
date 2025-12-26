@@ -12,7 +12,7 @@ import type {
 export class SubsplashApi implements ICredentialType {
 	name = 'subsplashApi';
 
-	displayName = 'Subsplash (ROPC) API';
+	displayName = 'Subsplash API';
 
 	icon: Icon = 'file:../icons/subsplash.svg';
 
@@ -105,7 +105,21 @@ export class SubsplashApi implements ICredentialType {
 					authenticationMethod: ['ropc'],
 				},
 			},
-			description: 'Subsplash account email (for ROPC)',
+			description: 'Subsplash account email',
+		},
+		{
+			displayName: 'Password',
+			name: 'password',
+			type: 'string',
+			typeOptions: { password: true },
+			default: '',
+			required: true,
+			displayOptions: {
+				show: {
+					authenticationMethod: ['ropc'],
+				},
+			},
+			description: 'Subsplash account password',
 		},
 		{
 			displayName: 'Scope',
@@ -146,6 +160,16 @@ export class SubsplashApi implements ICredentialType {
 			default: '',
 			description:
 				'Your Subsplash organization key (8 characters, e.g., "SUBSPLSH"). Required for People API. If empty, will use App Key.',
+		},
+		{
+			displayName: 'Access Token',
+			name: 'accessToken',
+			type: 'hidden',
+
+			typeOptions: {
+				expirable: true,
+			},
+			default: '',
 		},
 	];
 
@@ -216,10 +240,18 @@ export class SubsplashApi implements ICredentialType {
 				// Cache token with 30 second buffer before expiry
 				const expiresIn = (responseData.expires_in as number) || 3600;
 				const expiresAt = Date.now() + (expiresIn - 30) * 1000;
+				const accessToken = responseData.access_token as string;
+
+				// Validate token exists and is not empty
+				if (!accessToken || typeof accessToken !== 'string' || accessToken.trim().length === 0) {
+					throw new Error(
+						`Invalid access token received. Token type: ${typeof accessToken}, length: ${accessToken?.length || 0}`,
+					);
+				}
 
 				return {
-					accessToken: responseData.access_token as string,
-					expiresAt,
+					accessToken: accessToken,
+					expiresAt: expiresAt,
 				};
 			} catch (error) {
 				// Provide better error messages
@@ -287,13 +319,21 @@ export class SubsplashApi implements ICredentialType {
 				}
 
 				const responseData = response as { access_token: string; expires_in?: number };
+				const accessToken = responseData.access_token;
+
+				// Validate token exists and is not empty
+				if (!accessToken || typeof accessToken !== 'string' || accessToken.trim().length === 0) {
+					throw new Error(
+						`Invalid access token received from v2 endpoint. Token type: ${typeof accessToken}, length: ${accessToken?.length || 0}`,
+					);
+				}
 
 				// Cache token with 30 second buffer before expiry
 				const expiresIn = responseData.expires_in || 3600;
 				const expiresAt = Date.now() + (expiresIn - 30) * 1000;
 
 				return {
-					accessToken: responseData.access_token,
+					accessToken,
 					expiresAt,
 				};
 			} catch (error) {
@@ -329,13 +369,14 @@ export class SubsplashApi implements ICredentialType {
 		type: 'generic',
 		properties: {
 			headers: {
-				Authorization: '=Bearer {{$credentials.accessToken}}',
+				// Token should be set by preAuthentication - if missing, this will fail with a clear error
+				Authorization: '=Bearer {{$credentials.accessToken || "404notfound"}}',
 				Accept: 'application/vnd.api+json',
 			},
 		},
 	};
 
-	test: ICredentialTestRequest = {
+	test = {
 		request: {
 			baseURL: '={{$credentials.baseUrl || "https://core.subsplash.com"}}',
 			url: '/events/v2/calendars',
@@ -345,6 +386,6 @@ export class SubsplashApi implements ICredentialType {
 				'filter[app_key]': '={{$credentials.appKey}}',
 			},
 		},
-	};
+	} as ICredentialTestRequest;
 }
 
