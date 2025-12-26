@@ -139,6 +139,14 @@ export class SubsplashApi implements ICredentialType {
 			required: true,
 			description: 'Your Subsplash app key (e.g., "2T3DTM" or "9XTSHD")',
 		},
+		{
+			displayName: 'Org Key',
+			name: 'orgKey',
+			type: 'string',
+			default: '',
+			description:
+				'Your Subsplash organization key (8 characters, e.g., "SUBSPLSH"). Required for People API. If empty, will use App Key.',
+		},
 	];
 
 	preAuthentication = async function (
@@ -160,6 +168,7 @@ export class SubsplashApi implements ICredentialType {
 			}
 
 			// Use form data for v1 endpoint (build URL-encoded string)
+			// Match the exact format from test-api.js
 			const formDataParts: string[] = [];
 			formDataParts.push(`grant_type=password`);
 			formDataParts.push(`email=${encodeURIComponent(email)}`);
@@ -169,27 +178,75 @@ export class SubsplashApi implements ICredentialType {
 			}
 			const formDataString = formDataParts.join('&');
 
-			const response = await this.helpers.httpRequest({
-				method: 'POST',
-				url: `${baseUrl}/accounts/v1/oauth/token`,
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: formDataString,
-				json: false,
-			});
+			try {
+				const response = await this.helpers.httpRequest({
+					method: 'POST',
+					url: `${baseUrl}/accounts/v1/oauth/token`,
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: formDataString,
+					json: false,
+				});
 
-			// Parse response (may be JSON string or object)
-			const responseData = typeof response === 'string' ? JSON.parse(response) : response;
+				// Parse response (may be JSON string or object)
+				// Handle both string and object responses
+				let responseData: IDataObject;
+				if (typeof response === 'string') {
+					try {
+						responseData = JSON.parse(response);
+					} catch (parseError) {
+						throw new Error(
+							`Failed to parse authentication response: ${response.substring(0, 200)}`,
+						);
+					}
+				} else if (response && typeof response === 'object') {
+					responseData = response as IDataObject;
+				} else {
+					throw new Error(`Unexpected response type: ${typeof response}`);
+				}
 
-			// Cache token with 30 second buffer before expiry
-			const expiresIn = responseData.expires_in || 3600;
-			const expiresAt = Date.now() + (expiresIn - 30) * 1000;
+				// Validate response has access_token
+				if (!responseData.access_token) {
+					throw new Error(
+						`Authentication response missing access_token. Response: ${JSON.stringify(responseData)}`,
+					);
+				}
 
-			return {
-				accessToken: responseData.access_token,
-				expiresAt,
-			};
+				// Cache token with 30 second buffer before expiry
+				const expiresIn = (responseData.expires_in as number) || 3600;
+				const expiresAt = Date.now() + (expiresIn - 30) * 1000;
+
+				return {
+					accessToken: responseData.access_token as string,
+					expiresAt,
+				};
+			} catch (error) {
+				// Provide better error messages
+				if (error && typeof error === 'object' && 'response' in error) {
+					const httpError = error as {
+						response?: {
+							statusCode?: number;
+							status?: number;
+							body?: unknown;
+							data?: unknown;
+						};
+					};
+					if (httpError.response) {
+						const status = httpError.response.statusCode || httpError.response.status;
+						const body = httpError.response.body || httpError.response.data;
+						const bodyStr =
+							typeof body === 'string' ? body : JSON.stringify(body, null, 2);
+						throw new Error(
+							`Authentication failed with status ${status}: ${bodyStr.substring(0, 500)}`,
+						);
+					}
+				}
+				if (error instanceof Error) {
+					throw error;
+				}
+				throw new Error(`Authentication failed: ${String(error)}`);
+			}
 		} else {
 			// v2 endpoint: ROPC with client credentials
 			const { clientId, clientSecret, username, password, scope } = credentials as {
@@ -206,29 +263,65 @@ export class SubsplashApi implements ICredentialType {
 				);
 			}
 
-			const response = await this.helpers.httpRequest({
-				method: 'POST',
-				url: `${baseUrl}/accounts/v2/oauth/token`,
-				headers: { 'Content-Type': 'application/json' },
-				body: {
-					grant_type: 'password',
-					client_id: clientId,
-					client_secret: clientSecret,
-					username,
-					password,
-					scope: scope || 'media:read media:write live:write',
-				},
-				json: true,
-			});
+			try {
+				const response = await this.helpers.httpRequest({
+					method: 'POST',
+					url: `${baseUrl}/accounts/v2/oauth/token`,
+					headers: { 'Content-Type': 'application/json' },
+					body: {
+						grant_type: 'password',
+						client_id: clientId,
+						client_secret: clientSecret,
+						username,
+						password,
+						scope: scope || 'media:read media:write live:write',
+					},
+					json: true,
+				});
 
-			// Cache token with 30 second buffer before expiry
-			const expiresIn = response.expires_in || 3600;
-			const expiresAt = Date.now() + (expiresIn - 30) * 1000;
+				// Validate response has access_token
+				if (!response || typeof response !== 'object' || !('access_token' in response)) {
+					throw new Error(
+						`Authentication response missing access_token. Response: ${JSON.stringify(response)}`,
+					);
+				}
 
-			return {
-				accessToken: response.access_token,
-				expiresAt,
-			};
+				const responseData = response as { access_token: string; expires_in?: number };
+
+				// Cache token with 30 second buffer before expiry
+				const expiresIn = responseData.expires_in || 3600;
+				const expiresAt = Date.now() + (expiresIn - 30) * 1000;
+
+				return {
+					accessToken: responseData.access_token,
+					expiresAt,
+				};
+			} catch (error) {
+				// Provide better error messages
+				if (error && typeof error === 'object' && 'response' in error) {
+					const httpError = error as {
+						response?: {
+							statusCode?: number;
+							status?: number;
+							body?: unknown;
+							data?: unknown;
+						};
+					};
+					if (httpError.response) {
+						const status = httpError.response.statusCode || httpError.response.status;
+						const body = httpError.response.body || httpError.response.data;
+						const bodyStr =
+							typeof body === 'string' ? body : JSON.stringify(body, null, 2);
+						throw new Error(
+							`Authentication failed with status ${status}: ${bodyStr.substring(0, 500)}`,
+						);
+					}
+				}
+				if (error instanceof Error) {
+					throw error;
+				}
+				throw new Error(`Authentication failed: ${String(error)}`);
+			}
 		}
 	};
 

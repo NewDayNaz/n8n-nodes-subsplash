@@ -45,7 +45,11 @@ $env:SUBSPLASH_EMAIL="your-email@example.com"
 $env:SUBSPLASH_PASSWORD="your-password"
 $env:SUBSPLASH_APP_KEY="YOUR_APP_KEY"
 $env:SUBSPLASH_SCOPE="app:YOUR_APP_KEY"  # Optional
-$env:SUBSPLASH_MEDIA_ITEM_ID="uuid-here"  # Optional, for update test
+$env:SUBSPLASH_MEDIA_ITEM_ID="uuid-here"  # Optional, for get/update/delete tests
+$env:SUBSPLASH_CALENDAR_ID="uuid-here"  # Optional, for calendar tests
+$env:SUBSPLASH_EVENT_ID="uuid-here"  # Optional, for event tests
+$env:SUBSPLASH_PROFILE_ID="uuid-here"  # Optional, for profile tests
+$env:SUBSPLASH_HOUSEHOLD_ID="uuid-here"  # Optional, for household tests
 node test-api.js
 ```
 
@@ -58,6 +62,10 @@ export SUBSPLASH_PASSWORD="your-password"
 export SUBSPLASH_APP_KEY="YOUR_APP_KEY"
 export SUBSPLASH_SCOPE="app:YOUR_APP_KEY"  # Optional
 export SUBSPLASH_MEDIA_ITEM_ID="uuid-here"  # Optional
+export SUBSPLASH_CALENDAR_ID="uuid-here"  # Optional
+export SUBSPLASH_EVENT_ID="uuid-here"  # Optional
+export SUBSPLASH_PROFILE_ID="uuid-here"  # Optional
+export SUBSPLASH_HOUSEHOLD_ID="uuid-here"  # Optional
 node test-api.js
 ```
 
@@ -74,6 +82,10 @@ $env:SUBSPLASH_PASSWORD="your-password"
 $env:SUBSPLASH_APP_KEY="YOUR_APP_KEY"
 $env:SUBSPLASH_SCOPE="media:read media:write live:write"  # Optional
 $env:SUBSPLASH_MEDIA_ITEM_ID="uuid-here"  # Optional
+$env:SUBSPLASH_CALENDAR_ID="uuid-here"  # Optional
+$env:SUBSPLASH_EVENT_ID="uuid-here"  # Optional
+$env:SUBSPLASH_PROFILE_ID="uuid-here"  # Optional
+$env:SUBSPLASH_HOUSEHOLD_ID="uuid-here"  # Optional
 node test-api.js
 ```
 
@@ -95,12 +107,31 @@ node test-api.js
 
 The script runs the following tests in sequence:
 
+### Authentication
 1. **Authentication** - Tests OAuth token acquisition (v1 or v2)
-2. **Get Media Items** - Tests GET `/media/v1/media-items` endpoint
-3. **Create Source Image** - Tests POST `/files/v1/images` (source type)
-4. **S3 Upload** - Tests PUT to presigned S3 URL
-5. **Create Typed Images** - Tests POST `/files/v1/images` (wide, square, banner)
-6. **Update Media Item** - Tests PATCH `/media/v1/media-items/{id}` (if media item ID provided)
+
+### Media API
+2. **List Media Items** - Tests GET `/media/v1/media-items` endpoint
+3. **Get Media Item** - Tests GET `/media/v1/media-items/{id}` (if ID provided)
+4. **Create Media Item** - Tests POST `/media/v1/media-items`
+5. **Update Media Item** - Tests PATCH `/media/v1/media-items/{id}` (if ID provided)
+6. **Delete Media Item** - Tests DELETE `/media/v1/media-items/{id}` (cleanup of created items)
+
+### Artwork Upload
+7. **Create Source Image** - Tests POST `/files/v1/images` (source type)
+8. **S3 Upload** - Tests PUT to presigned S3 URL
+9. **Create Typed Images** - Tests POST `/files/v1/images` (wide, square, banner)
+
+### Events API
+10. **List Calendars** - Tests GET `/events/v2/calendars`
+11. **Get Calendar** - Tests GET `/events/v2/calendars/{id}` (if ID available)
+12. **Create Calendar** - Tests POST `/events/v2/calendars`
+13. **List Events** - Tests GET `/events/v2/events`
+
+### People API
+14. **List Profiles** - Tests GET `/people/v1/profiles`
+15. **Get Profile** - Tests GET `/people/v1/profiles/{id}` (if ID available)
+16. **List Households** - Tests GET `/people/v1/households`
 
 ## Troubleshooting
 
@@ -172,10 +203,21 @@ Typed Image ID (wide): xyz789-...
 ✅ All tests passed!
 ```
 
+## Test Results
+
+The script provides a comprehensive summary at the end:
+- ✅ **Passed** - Tests that completed successfully
+- ❌ **Failed** - Tests that encountered errors (details shown)
+- ⏭️ **Skipped** - Tests that were skipped due to missing optional IDs
+
+The script continues running even if some tests fail, allowing you to see results for all endpoints.
+
 ## Notes
 
 - The script creates a minimal 1x1 PNG for S3 upload testing
 - Source images and typed images are created but not cleaned up (test artifacts)
-- Media item updates are only tested if `SUBSPLASH_MEDIA_ITEM_ID` is provided
+- Created test media items are automatically deleted at the end (cleanup)
+- Tests that require IDs will be skipped if IDs are not provided
 - All API calls use the same authentication token obtained at the start
+- The script uses `app_key` as `org_key` for People API tests (they may be the same in your setup)
 

@@ -46,6 +46,9 @@
 			"dist/nodes/SubsplashPeople/SubsplashPeople.node.js"
 		]
 	},
+	"dependencies": {
+		"sharp": "^0.33.5"
+	},
 	"devDependencies": {
 		"@n8n/node-cli": "*",
 		"@types/node": "^20.19.27",

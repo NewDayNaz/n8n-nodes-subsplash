@@ -26,13 +26,29 @@ $env:SUBSPLASH_PASSWORD = "your-password"
 # App Key (required)
 $env:SUBSPLASH_APP_KEY = "YOUR_APP_KEY"
 
+# Org Key (optional, for People API - defaults to App Key if not provided)
+# Org Key is typically 8 characters (e.g., "SUBSPLSH")
+$env:SUBSPLASH_ORG_KEY = ""
+
 # Scope (optional)
 # For v1: usually "app:YOUR_APP_KEY" or leave empty
 # For v2: usually "media:read media:write live:write"
 $env:SUBSPLASH_SCOPE = ""
 
-# Media Item ID (optional, for testing update operations)
+# Media Item ID (optional, for testing get/update/delete operations)
 $env:SUBSPLASH_MEDIA_ITEM_ID = ""
+
+# Calendar ID (optional, for testing calendar operations)
+$env:SUBSPLASH_CALENDAR_ID = ""
+
+# Event ID (optional, for testing event operations)
+$env:SUBSPLASH_EVENT_ID = ""
+
+# Profile ID (optional, for testing profile operations)
+$env:SUBSPLASH_PROFILE_ID = ""
+
+# Household ID (optional, for testing household operations)
+$env:SUBSPLASH_HOUSEHOLD_ID = ""
 
 # ============================================
 # DO NOT EDIT BELOW THIS LINE

@@ -447,16 +447,12 @@ export class SubsplashPeople implements INodeType {
 				const credentials = await this.getCredentials('subsplashApi');
 				const baseUrl = (credentials?.baseUrl as string) || 'https://core.subsplash.com';
 				const appKey = (credentials?.appKey as string) || '';
+				const orgKey = (credentials?.orgKey as string) || appKey;
 
-				// For People API, we need org_key instead of app_key
-				// Note: This might need to be a separate credential field
-				// For now, we'll use app_key as org_key (they might be the same)
-				const orgKey = appKey;
-
-				if (!orgKey) {
+				if (!appKey) {
 					throw new NodeOperationError(
 						this.getNode(),
-						'App Key (used as Org Key) is required in credentials',
+						'App Key is required in credentials',
 						{ itemIndex },
 					);
 				}
@@ -470,6 +466,7 @@ export class SubsplashPeople implements INodeType {
 						const response = await (this as unknown as SubsplashPeople).listProfiles(
 							this,
 							baseUrl,
+							appKey,
 							orgKey,
 							returnAll,
 							limit,
@@ -545,6 +542,7 @@ export class SubsplashPeople implements INodeType {
 						const response = await (this as unknown as SubsplashPeople).listHouseholds(
 							this,
 							baseUrl,
+							appKey,
 							orgKey,
 							returnAll,
 							limit,
@@ -649,15 +647,20 @@ export class SubsplashPeople implements INodeType {
 	private async listProfiles(
 		context: IExecuteFunctions,
 		baseUrl: string,
+		appKey: string,
 		orgKey: string,
 		returnAll: boolean,
 		limit: number,
 		filters: IDataObject,
 		itemIndex: number,
 	): Promise<{ _embedded?: { profiles?: ProfileResponse[] } }> {
-		const qs: IDataObject = {
-			'filter[org_key]': orgKey,
-		};
+		const qs: IDataObject = {};
+		
+		// Only add org_key filter if orgKey is provided and different from appKey
+		// Some orgs may not require this filter, or it may be inferred from token
+		if (orgKey && orgKey !== appKey) {
+			qs['filter[org_key]'] = orgKey;
+		}
 
 		if (filters.email) {
 			qs['filter[email]'] = filters.email;
@@ -893,14 +896,19 @@ export class SubsplashPeople implements INodeType {
 	private async listHouseholds(
 		context: IExecuteFunctions,
 		baseUrl: string,
+		appKey: string,
 		orgKey: string,
 		returnAll: boolean,
 		limit: number,
 		itemIndex: number,
 	): Promise<{ _embedded?: { households?: HouseholdResponse[] } }> {
-		const qs: IDataObject = {
-			'filter[org_key]': orgKey,
-		};
+		const qs: IDataObject = {};
+		
+		// Only add org_key filter if orgKey is provided and different from appKey
+		// Some orgs may not require this filter, or it may be inferred from token
+		if (orgKey && orgKey !== appKey) {
+			qs['filter[org_key]'] = orgKey;
+		}
 
 		if (!returnAll) {
 			qs['page[size]'] = limit;

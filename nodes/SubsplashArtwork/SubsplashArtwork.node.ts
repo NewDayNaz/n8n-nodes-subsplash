@@ -7,6 +7,7 @@ import type {
 	IDataObject,
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
+import sharp from 'sharp';
 
 interface SourceImageResponse {
 	id: string;
@@ -199,6 +200,7 @@ export class SubsplashArtwork implements INodeType {
 								title,
 								type,
 								sourceId,
+								imageData,
 								itemIndex,
 							);
 							const typedId = typedImage.id;
@@ -359,6 +361,82 @@ export class SubsplashArtwork implements INodeType {
 		}
 	}
 
+	private async extractColors(imageBuffer: Buffer): Promise<{ average_color_hex: string; vibrant_color_hex: string }> {
+		try {
+			// Resize to a manageable size for color extraction (max 100x100)
+			const resized = await sharp(imageBuffer).resize(100, 100, { fit: 'inside' }).raw().toBuffer({ resolveWithObject: true });
+			
+			const pixels = resized.data;
+			const width = resized.info.width;
+			const height = resized.info.height;
+			const channels = resized.info.channels;
+			
+			let totalR = 0;
+			let totalG = 0;
+			let totalB = 0;
+			let maxSaturation = 0;
+			let vibrantR = 0;
+			let vibrantG = 0;
+			let vibrantB = 0;
+			
+			// Process pixels
+			for (let i = 0; i < pixels.length; i += channels) {
+				const r = pixels[i];
+				const g = pixels[i + 1];
+				const b = pixels[i + 2];
+				
+				// Calculate average
+				totalR += r;
+				totalG += g;
+				totalB += b;
+				
+				// Calculate saturation for vibrant color
+				const max = Math.max(r, g, b);
+				const min = Math.min(r, g, b);
+				const saturation = max === 0 ? 0 : (max - min) / max;
+				
+				// Track most saturated color
+				if (saturation > maxSaturation) {
+					maxSaturation = saturation;
+					vibrantR = r;
+					vibrantG = g;
+					vibrantB = b;
+				}
+			}
+			
+			const pixelCount = width * height;
+			if (pixelCount === 0) {
+				throw new Error('No pixels found in image');
+			}
+			
+			const avgR = Math.round(totalR / pixelCount);
+			const avgG = Math.round(totalG / pixelCount);
+			const avgB = Math.round(totalB / pixelCount);
+			
+			// Ensure vibrant color has a value (if no saturated color found, use average)
+			if (maxSaturation === 0) {
+				vibrantR = avgR;
+				vibrantG = avgG;
+				vibrantB = avgB;
+			}
+			
+			// Convert to hex (ensure lowercase and valid format)
+			const averageColorHex = `#${avgR.toString(16).padStart(2, '0')}${avgG.toString(16).padStart(2, '0')}${avgB.toString(16).padStart(2, '0')}`.toLowerCase();
+			const vibrantColorHex = `#${vibrantR.toString(16).padStart(2, '0')}${vibrantG.toString(16).padStart(2, '0')}${vibrantB.toString(16).padStart(2, '0')}`.toLowerCase();
+			
+			return {
+				average_color_hex: averageColorHex,
+				vibrant_color_hex: vibrantColorHex,
+			};
+		} catch (error) {
+			// Fallback to default colors if extraction fails
+			return {
+				average_color_hex: '#2ea7cc',
+				vibrant_color_hex: '#2ea7cc',
+			};
+		}
+	}
+
 	private async createTypedImage(
 		context: IExecuteFunctions,
 		baseUrl: string,
@@ -367,8 +445,12 @@ export class SubsplashArtwork implements INodeType {
 		title: string,
 		type: string,
 		sourceId: string,
+		imageData: Buffer,
 		itemIndex: number,
 	): Promise<TypedImageResponse> {
+		// Extract colors from the image
+		const colors = await this.extractColors(imageData);
+		
 		const options: IHttpRequestOptions = {
 			method: 'POST',
 			url: `${baseUrl}/files/v1/images`,
@@ -381,6 +463,8 @@ export class SubsplashArtwork implements INodeType {
 				content_type: contentType,
 				title,
 				type,
+				average_color_hex: colors.average_color_hex,
+				vibrant_color_hex: colors.vibrant_color_hex,
 				_embedded: {
 					source: {
 						id: sourceId,
