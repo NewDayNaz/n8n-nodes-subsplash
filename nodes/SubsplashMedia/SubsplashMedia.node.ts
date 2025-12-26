@@ -190,6 +190,11 @@ export class SubsplashMedia implements INodeType {
 						type: 'options',
 						options: [
 							{
+								name: 'None',
+								value: '',
+								description: 'Do not filter by unlisted status',
+							},
+							{
 								name: 'Include Unlisted',
 								value: 'include',
 								description: 'Include unlisted items in results',
@@ -203,7 +208,7 @@ export class SubsplashMedia implements INodeType {
 						name: 'upcoming_live',
 						type: 'boolean',
 						default: false,
-						description: 'Filter for upcoming live events (true) or exclude them (false)',
+						description: 'Whether to filter for upcoming live events',
 					},
 				],
 			},
