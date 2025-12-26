@@ -363,14 +363,26 @@ export class SubsplashArtwork implements INodeType {
 
 	private async extractColors(imageBuffer: Buffer): Promise<{ average_color_hex: string; vibrant_color_hex: string }> {
 		try {
+			if (!imageBuffer || !Buffer.isBuffer(imageBuffer)) {
+				throw new Error('Invalid image buffer provided');
+			}
+
+			// Ensure we have a valid image by checking metadata first
+			const metadata = await sharp(imageBuffer).metadata();
+			if (!metadata.width || !metadata.height) {
+				throw new Error('Invalid image: no width or height');
+			}
+
 			// Resize to a manageable size for color extraction (max 100x100)
-			const resized = await sharp(imageBuffer).resize(100, 100, { fit: 'inside' }).raw().toBuffer({ resolveWithObject: true });
-			
+			const resized = await sharp(imageBuffer)
+				.resize(100, 100, { fit: 'inside', withoutEnlargement: true })
+				.ensureAlpha()
+				.raw()
+				.toBuffer({ resolveWithObject: true });
+
 			const pixels = resized.data;
-			const width = resized.info.width;
-			const height = resized.info.height;
 			const channels = resized.info.channels;
-			
+
 			let totalR = 0;
 			let totalG = 0;
 			let totalB = 0;
@@ -378,52 +390,63 @@ export class SubsplashArtwork implements INodeType {
 			let vibrantR = 0;
 			let vibrantG = 0;
 			let vibrantB = 0;
-			
-			// Process pixels
+
+			// Process pixels (skip fully transparent pixels for better color accuracy)
+			let validPixelCount = 0;
 			for (let i = 0; i < pixels.length; i += channels) {
 				const r = pixels[i];
 				const g = pixels[i + 1];
 				const b = pixels[i + 2];
-				
+				const a = channels > 3 ? pixels[i + 3] : 255; // Alpha channel
+
+				// Skip fully transparent pixels
+				if (a < 128) continue;
+
+				validPixelCount++;
+
 				// Calculate average
 				totalR += r;
 				totalG += g;
 				totalB += b;
-				
+
 				// Calculate saturation for vibrant color
 				const max = Math.max(r, g, b);
 				const min = Math.min(r, g, b);
 				const saturation = max === 0 ? 0 : (max - min) / max;
-				
-				// Track most saturated color
-				if (saturation > maxSaturation) {
+
+				// Track most saturated color (prefer colors with good saturation)
+				if (saturation > maxSaturation && saturation > 0.1) {
 					maxSaturation = saturation;
 					vibrantR = r;
 					vibrantG = g;
 					vibrantB = b;
 				}
 			}
-			
-			const pixelCount = width * height;
-			if (pixelCount === 0) {
-				throw new Error('No pixels found in image');
+
+			if (validPixelCount === 0) {
+				throw new Error('No valid pixels found in image (all transparent)');
 			}
-			
-			const avgR = Math.round(totalR / pixelCount);
-			const avgG = Math.round(totalG / pixelCount);
-			const avgB = Math.round(totalB / pixelCount);
-			
+
+			const avgR = Math.round(totalR / validPixelCount);
+			const avgG = Math.round(totalG / validPixelCount);
+			const avgB = Math.round(totalB / validPixelCount);
+
 			// Ensure vibrant color has a value (if no saturated color found, use average)
 			if (maxSaturation === 0) {
 				vibrantR = avgR;
 				vibrantG = avgG;
 				vibrantB = avgB;
 			}
-			
+
 			// Convert to hex (ensure lowercase and valid format)
 			const averageColorHex = `#${avgR.toString(16).padStart(2, '0')}${avgG.toString(16).padStart(2, '0')}${avgB.toString(16).padStart(2, '0')}`.toLowerCase();
 			const vibrantColorHex = `#${vibrantR.toString(16).padStart(2, '0')}${vibrantG.toString(16).padStart(2, '0')}${vibrantB.toString(16).padStart(2, '0')}`.toLowerCase();
-			
+
+			// Validate hex format
+			if (!/^#[0-9a-f]{6}$/i.test(averageColorHex) || !/^#[0-9a-f]{6}$/i.test(vibrantColorHex)) {
+				throw new Error(`Invalid hex color format: average=${averageColorHex}, vibrant=${vibrantColorHex}`);
+			}
+
 			return {
 				average_color_hex: averageColorHex,
 				vibrant_color_hex: vibrantColorHex,
