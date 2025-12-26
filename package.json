@@ -1,7 +1,7 @@
 {
 	"name": "n8n-nodes-subsplash",
-	"version": "0.1.1",
-	"description": "n8n community node for Subsplash - Upload artwork, manage media items, and interact with the Subsplash API",
+	"version": "0.2.0",
+	"description": "n8n community node for Subsplash - Upload artwork, manage media items, events, and people profiles",
 	"license": "MIT",
 	"homepage": "https://github.com/NewDayNaz/n8n-nodes-subsplash",
 	"keywords": [
