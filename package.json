@@ -41,7 +41,9 @@
 		],
 		"nodes": [
 			"dist/nodes/SubsplashArtwork/SubsplashArtwork.node.js",
-			"dist/nodes/SubsplashMedia/SubsplashMedia.node.js"
+			"dist/nodes/SubsplashMedia/SubsplashMedia.node.js",
+			"dist/nodes/SubsplashEvents/SubsplashEvents.node.js",
+			"dist/nodes/SubsplashPeople/SubsplashPeople.node.js"
 		]
 	},
 	"devDependencies": {

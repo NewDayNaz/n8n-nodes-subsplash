@@ -1,0 +1,21 @@
+{
+	"node": "n8n-nodes-base.subsplashPeople",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Communication"],
+	"resources": {
+		"credential": [
+			{
+				"name": "subsplashApi",
+				"@id": "https://developer.subsplash.com"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://developer.subsplash.com"
+			}
+		]
+	},
+	"alias": ["Subsplash", "People", "Profiles", "Households"]
+}
+

@@ -245,10 +245,11 @@ export class SubsplashApi implements ICredentialType {
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: '={{$credentials.baseUrl || "https://core.subsplash.com"}}',
-			url: '/media/v1/media-items',
+			url: '/events/v2/calendars',
 			method: 'GET',
 			qs: {
 				'page[size]': 1,
+				'filter[app_key]': '={{$credentials.appKey}}',
 			},
 		},
 	};
