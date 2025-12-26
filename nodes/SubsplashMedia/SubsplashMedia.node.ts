@@ -34,6 +34,7 @@ export class SubsplashMedia implements INodeType {
 		},
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
+		usableAsTool: true,
 		credentials: [
 			{
 				name: 'subsplashApi',
@@ -125,7 +126,7 @@ export class SubsplashMedia implements INodeType {
 						operation: ['update'],
 					},
 				},
-				description: 'Comma-separated speaker names (max 3). Will be formatted as "speaker:Name" tags',
+				description: 'Comma-separated speaker names (max 3). Will be formatted as "speaker:Name" tags.',
 				placeholder: 'John Doe, Jane Smith',
 			},
 			{
@@ -138,7 +139,7 @@ export class SubsplashMedia implements INodeType {
 						operation: ['update'],
 					},
 				},
-				description: 'Comma-separated topics (max 10). Will be formatted as "topic:Name" tags',
+				description: 'Comma-separated topics (max 10). Will be formatted as "topic:Name" tags.',
 				placeholder: 'Faith, Hope, Love',
 			},
 			{
@@ -220,7 +221,7 @@ export class SubsplashMedia implements INodeType {
 						value: 'unlisted',
 					},
 				],
-				default: '',
+				default: 'draft',
 				displayOptions: {
 					show: {
 						operation: ['update'],
@@ -253,7 +254,7 @@ export class SubsplashMedia implements INodeType {
 								type: 'string',
 								default: '',
 								required: true,
-								description: 'Subsplash image ID',
+
 							},
 							{
 								displayName: 'Type',
@@ -275,7 +276,6 @@ export class SubsplashMedia implements INodeType {
 								],
 								default: 'square',
 								required: true,
-								description: 'Image type',
 							},
 						],
 					},
@@ -420,7 +420,8 @@ export class SubsplashMedia implements INodeType {
 					}
 
 					// Update media item
-					const response = await this.updateMediaItem(
+					const response = await (this as unknown as SubsplashMedia).updateMediaItem(
+						this,
 						baseUrl,
 						mediaItemId,
 						requestBody,
@@ -428,7 +429,7 @@ export class SubsplashMedia implements INodeType {
 					);
 
 					const outputItem: INodeExecutionData = {
-						json: response as IDataObject,
+						json: response as unknown as IDataObject,
 						binary: items[itemIndex].binary,
 					};
 
@@ -454,6 +455,7 @@ export class SubsplashMedia implements INodeType {
 	}
 
 	private async updateMediaItem(
+		context: IExecuteFunctions,
 		baseUrl: string,
 		mediaItemId: string,
 		requestBody: IDataObject,
@@ -471,34 +473,47 @@ export class SubsplashMedia implements INodeType {
 		};
 
 		try {
-			const response = await this.helpers.httpRequestWithAuthentication.call(
-				this,
+			const response = await context.helpers.httpRequestWithAuthentication.call(
+				context,
 				'subsplashApi',
 				options,
 			);
 			return response as MediaItemResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(error);
-			throw new NodeOperationError(this.getNode(), error, {
+			const errorMessage = this.extractErrorMessage(context, error);
+			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to update media item: ${errorMessage}`,
 			});
 		}
 	}
 
-	private extractErrorMessage(error: any): string {
-		if (error.response) {
-			const status = error.response.statusCode || error.response.status;
-			const url = error.response.request?.url || error.config?.url || 'unknown endpoint';
-			const body = error.response.body || error.response.data;
-			let bodySnippet = '';
-			if (body) {
-				const bodyStr = typeof body === 'string' ? body : JSON.stringify(body);
-				bodySnippet = bodyStr.substring(0, 1000); // Limit to 1KB
+	private extractErrorMessage(context: IExecuteFunctions, error: unknown): string {
+		if (error && typeof error === 'object' && 'response' in error) {
+			const errorResponse = error as {
+				response?: {
+					statusCode?: number;
+					status?: number;
+					request?: { url?: string };
+					body?: unknown;
+					data?: unknown;
+				};
+				config?: { url?: string };
+			};
+			if (errorResponse.response) {
+				const status = errorResponse.response.statusCode || errorResponse.response.status;
+				const url =
+					errorResponse.response.request?.url || errorResponse.config?.url || 'unknown endpoint';
+				const body = errorResponse.response.body || errorResponse.response.data;
+				let bodySnippet = '';
+				if (body) {
+					const bodyStr = typeof body === 'string' ? body : JSON.stringify(body);
+					bodySnippet = bodyStr.substring(0, 1000); // Limit to 1KB
+				}
+				return `Endpoint ${url} returned status ${status}${bodySnippet ? `: ${bodySnippet}` : ''}`;
 			}
-			return `Endpoint ${url} returned status ${status}${bodySnippet ? `: ${bodySnippet}` : ''}`;
 		}
-		if (error.message) {
+		if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
 			return error.message;
 		}
 		return String(error);

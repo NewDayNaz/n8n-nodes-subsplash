@@ -43,6 +43,7 @@ export class SubsplashArtwork implements INodeType {
 		},
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
+		usableAsTool: true,
 		credentials: [
 			{
 				name: 'subsplashApi',
@@ -168,7 +169,8 @@ export class SubsplashArtwork implements INodeType {
 					}
 
 					// Step 1: Create source image
-					const sourceImage = await this.createSourceImage(
+					const sourceImage = await (this as unknown as SubsplashArtwork).createSourceImage(
+						this,
 						baseUrl,
 						appKey,
 						contentType,
@@ -180,7 +182,7 @@ export class SubsplashArtwork implements INodeType {
 					const presignedUrl = sourceImage._links.presigned_upload_url.href;
 
 					// Step 2: Upload to S3
-					await this.uploadToS3(presignedUrl, imageData, contentType, itemIndex);
+					await (this as unknown as SubsplashArtwork).uploadToS3(this, presignedUrl, imageData, contentType, itemIndex);
 
 					// Step 3: Create typed images
 					const created: IDataObject = {};
@@ -189,7 +191,8 @@ export class SubsplashArtwork implements INodeType {
 
 					for (const type of createTypes) {
 						try {
-							const typedImage = await this.createTypedImage(
+							const typedImage = await (this as unknown as SubsplashArtwork).createTypedImage(
+								this,
 								baseUrl,
 								appKey,
 								contentType,
@@ -201,7 +204,7 @@ export class SubsplashArtwork implements INodeType {
 							const typedId = typedImage.id;
 							created[`${type}Id`] = typedId;
 							imageIds.push({ id: typedId, type });
-						} catch (error) {
+						} catch {
 							// Collect partial successes, but mark failure
 							typedImageCreationFailed = true;
 							// Continue to collect other successes, but we'll stop before PATCH
@@ -212,11 +215,11 @@ export class SubsplashArtwork implements INodeType {
 					let assigned = false;
 					if (!typedImageCreationFailed && imageIds.length > 0) {
 						try {
-							await this.patchMediaItem(baseUrl, mediaItemId, imageIds, itemIndex);
+							await (this as unknown as SubsplashArtwork).patchMediaItem(this, baseUrl, mediaItemId, imageIds, itemIndex);
 							assigned = true;
 						} catch (error) {
 							// Return created IDs even if assignment fails
-							const errorMessage = this.extractErrorMessage(error);
+							const errorMessage = (this as unknown as SubsplashArtwork).extractErrorMessage(this, error);
 							throw new NodeOperationError(this.getNode(), error, {
 								itemIndex,
 								description: `Failed to assign images to media item: ${errorMessage}`,
@@ -241,7 +244,7 @@ export class SubsplashArtwork implements INodeType {
 								returnFullResponse: true,
 							});
 							verifyStatus = verifyResponse.statusCode || null;
-						} catch (error) {
+						} catch {
 							// Verification failure is non-fatal, continue execution
 						}
 					}
@@ -280,6 +283,7 @@ export class SubsplashArtwork implements INodeType {
 	}
 
 	private async createSourceImage(
+		context: IExecuteFunctions,
 		baseUrl: string,
 		appKey: string,
 		contentType: string,
@@ -303,15 +307,15 @@ export class SubsplashArtwork implements INodeType {
 		};
 
 		try {
-			const response = await this.helpers.httpRequestWithAuthentication.call(
-				this,
+			const response = await context.helpers.httpRequestWithAuthentication.call(
+				context,
 				'subsplashApi',
 				options,
 			);
 			return response as SourceImageResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(error);
-			throw new NodeOperationError(this.getNode(), error, {
+			const errorMessage = this.extractErrorMessage(context, error);
+			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to create source image: ${errorMessage}`,
 			});
@@ -319,6 +323,7 @@ export class SubsplashArtwork implements INodeType {
 	}
 
 	private async uploadToS3(
+		context: IExecuteFunctions,
 		presignedUrl: string,
 		imageData: Buffer,
 		contentType: string,
@@ -338,23 +343,24 @@ export class SubsplashArtwork implements INodeType {
 		};
 
 		try {
-			const response = await this.helpers.httpRequest(options);
-			const statusCode = response.statusCode || (response as any).status;
+			const response = await context.helpers.httpRequest(options);
+			const statusCode = response.statusCode || (response as { status?: number }).status;
 			if (statusCode && (statusCode < 200 || statusCode >= 300)) {
-				throw new Error(`S3 upload returned status ${statusCode}`);
+				throw new NodeOperationError(context.getNode(), `S3 upload returned status ${statusCode}`, {
+					itemIndex,
+				});
 			}
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(error);
-			const errorObj = new Error(`S3UploadError: ${errorMessage}`);
-			(errorObj as any).name = 'S3UploadError';
-			throw new NodeOperationError(this.getNode(), errorObj, {
+			const errorMessage = this.extractErrorMessage(context, error);
+			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
-				description: `S3 upload failed: ${errorMessage}`,
+				description: `S3UploadError: ${errorMessage}`,
 			});
 		}
 	}
 
 	private async createTypedImage(
+		context: IExecuteFunctions,
 		baseUrl: string,
 		appKey: string,
 		contentType: string,
@@ -386,15 +392,15 @@ export class SubsplashArtwork implements INodeType {
 		};
 
 		try {
-			const response = await this.helpers.httpRequestWithAuthentication.call(
-				this,
+			const response = await context.helpers.httpRequestWithAuthentication.call(
+				context,
 				'subsplashApi',
 				options,
 			);
 			return response as TypedImageResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(error);
-			throw new NodeOperationError(this.getNode(), error, {
+			const errorMessage = this.extractErrorMessage(context, error);
+			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to create typed image "${type}": ${errorMessage}`,
 			});
@@ -402,6 +408,7 @@ export class SubsplashArtwork implements INodeType {
 	}
 
 	private async patchMediaItem(
+		context: IExecuteFunctions,
 		baseUrl: string,
 		mediaItemId: string,
 		imageIds: Array<{ id: string; type: string }>,
@@ -424,34 +431,47 @@ export class SubsplashArtwork implements INodeType {
 		};
 
 		try {
-			const response = await this.helpers.httpRequestWithAuthentication.call(
-				this,
+			const response = await context.helpers.httpRequestWithAuthentication.call(
+				context,
 				'subsplashApi',
 				options,
 			);
 			return response as MediaItemResponse;
 		} catch (error) {
-			const errorMessage = this.extractErrorMessage(error);
-			throw new NodeOperationError(this.getNode(), error, {
+			const errorMessage = this.extractErrorMessage(context, error);
+			throw new NodeOperationError(context.getNode(), error, {
 				itemIndex,
 				description: `Failed to patch media item: ${errorMessage}`,
 			});
 		}
 	}
 
-	private extractErrorMessage(error: any): string {
-		if (error.response) {
-			const status = error.response.statusCode || error.response.status;
-			const url = error.response.request?.url || error.config?.url || 'unknown endpoint';
-			const body = error.response.body || error.response.data;
-			let bodySnippet = '';
-			if (body) {
-				const bodyStr = typeof body === 'string' ? body : JSON.stringify(body);
-				bodySnippet = bodyStr.substring(0, 1000); // Limit to 1KB
+	private extractErrorMessage(context: IExecuteFunctions, error: unknown): string {
+		if (error && typeof error === 'object' && 'response' in error) {
+			const errorResponse = error as {
+				response?: {
+					statusCode?: number;
+					status?: number;
+					request?: { url?: string };
+					body?: unknown;
+					data?: unknown;
+				};
+				config?: { url?: string };
+			};
+			if (errorResponse.response) {
+				const status = errorResponse.response.statusCode || errorResponse.response.status;
+				const url =
+					errorResponse.response.request?.url || errorResponse.config?.url || 'unknown endpoint';
+				const body = errorResponse.response.body || errorResponse.response.data;
+				let bodySnippet = '';
+				if (body) {
+					const bodyStr = typeof body === 'string' ? body : JSON.stringify(body);
+					bodySnippet = bodyStr.substring(0, 1000); // Limit to 1KB
+				}
+				return `Endpoint ${url} returned status ${status}${bodySnippet ? `: ${bodySnippet}` : ''}`;
 			}
-			return `Endpoint ${url} returned status ${status}${bodySnippet ? `: ${bodySnippet}` : ''}`;
 		}
-		if (error.message) {
+		if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
 			return error.message;
 		}
 		return String(error);

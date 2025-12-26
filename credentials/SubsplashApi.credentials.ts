@@ -4,14 +4,15 @@ import type {
 	ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
-	IAuthenticate,
+	IHttpRequestHelper,
 	ICredentialDataDecryptedObject,
+	IDataObject,
 } from 'n8n-workflow';
 
 export class SubsplashApi implements ICredentialType {
 	name = 'subsplashApi';
 
-	displayName = 'Subsplash (ROPC)';
+	displayName = 'Subsplash (ROPC) API';
 
 	icon: Icon = 'file:../icons/subsplash.svg';
 
@@ -141,9 +142,9 @@ export class SubsplashApi implements ICredentialType {
 	];
 
 	preAuthentication = async function (
-		this: IAuthenticate,
+		this: IHttpRequestHelper,
 		credentials: ICredentialDataDecryptedObject,
-	): Promise<ICredentialDataDecryptedObject> {
+	): Promise<IDataObject> {
 		const authMethod = (credentials.authenticationMethod as string) || 'emailPassword';
 		const baseUrl = (credentials.baseUrl as string) || 'https://core.subsplash.com';
 		const appKey = (credentials.appKey as string) || '';
@@ -232,7 +233,7 @@ export class SubsplashApi implements ICredentialType {
 	};
 
 	authenticate: IAuthenticateGeneric = {
-		type: 'preAuthentication',
+		type: 'generic',
 		properties: {
 			headers: {
 				Authorization: '=Bearer {{$credentials.accessToken}}',
