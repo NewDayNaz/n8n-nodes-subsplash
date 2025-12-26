@@ -213,12 +213,12 @@ export class SubsplashMedia implements INodeType {
 						value: 'draft',
 					},
 					{
-						name: 'Published',
-						value: 'published',
+						name: 'Scheduled',
+						value: 'scheduled',
 					},
 					{
-						name: 'Unlisted',
-						value: 'unlisted',
+						name: 'Published',
+						value: 'published',
 					},
 				],
 				default: 'draft',
@@ -227,7 +227,7 @@ export class SubsplashMedia implements INodeType {
 						operation: ['update'],
 					},
 				},
-				description: 'Publication status of the media item',
+				description: 'Publishing status of the media item. Note: "unlisted" is a filter option, not a status value.',
 			},
 			{
 				displayName: 'Images',
@@ -352,7 +352,7 @@ export class SubsplashMedia implements INodeType {
 						tags.push(...topics.map((topic) => `topic:${topic}`));
 					}
 
-					// Build images array
+					// Build images array (max 3 per OpenAPI spec)
 					const images: Array<{ id: string; type: string }> = [];
 					if (imagesData.image && Array.isArray(imagesData.image)) {
 						for (const img of imagesData.image) {
@@ -362,6 +362,13 @@ export class SubsplashMedia implements INodeType {
 									type: img.type,
 								});
 							}
+						}
+						if (images.length > 3) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Too many images: Maximum 3 images allowed per media item',
+								{ itemIndex },
+							);
 						}
 					}
 
@@ -381,9 +388,23 @@ export class SubsplashMedia implements INodeType {
 					};
 
 					if (title) {
+						if (title.length > 100) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Title exceeds maximum length of 100 characters',
+								{ itemIndex },
+							);
+						}
 						requestBody.title = title;
 					}
 					if (subtitle) {
+						if (subtitle.length > 100) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Subtitle exceeds maximum length of 100 characters',
+								{ itemIndex },
+							);
+						}
 						requestBody.subtitle = subtitle;
 					}
 					if (description) {
@@ -393,6 +414,13 @@ export class SubsplashMedia implements INodeType {
 						requestBody.date = date;
 					}
 					if (speaker) {
+						if (speaker.length > 200) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Speaker exceeds maximum length of 200 characters',
+								{ itemIndex },
+							);
+						}
 						requestBody.speaker = speaker;
 					}
 					if (tags.length > 0) {
@@ -402,9 +430,23 @@ export class SubsplashMedia implements INodeType {
 						requestBody.scriptures = scriptures;
 					}
 					if (externalAudioUrl) {
+						if (externalAudioUrl.length > 1024) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'External Audio URL exceeds maximum length of 1024 characters',
+								{ itemIndex },
+							);
+						}
 						requestBody.external_audio_url = externalAudioUrl;
 					}
 					if (externalVideoUrl) {
+						if (externalVideoUrl.length > 1024) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'External Video URL exceeds maximum length of 1024 characters',
+								{ itemIndex },
+							);
+						}
 						requestBody.external_video_url = externalVideoUrl;
 					}
 					if (autoPublish !== undefined) {
