@@ -1,2 +1,5 @@
 dist
 node_modules
+
+# Test environment setup (contains credentials)
+setup-test-env.ps1
