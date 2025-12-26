@@ -184,6 +184,27 @@ export class SubsplashMedia implements INodeType {
 						default: '',
 						description: 'Filter by title (supports wildcards *)',
 					},
+					{
+						displayName: 'Unlisted',
+						name: 'unlisted',
+						type: 'options',
+						options: [
+							{
+								name: 'Include Unlisted',
+								value: 'include',
+								description: 'Include unlisted items in results',
+							},
+						],
+						default: '',
+						description: 'Set to "Include Unlisted" to include unlisted media items in results',
+					},
+					{
+						displayName: 'Upcoming Live',
+						name: 'upcoming_live',
+						type: 'boolean',
+						default: false,
+						description: 'Filter for upcoming live events (true) or exclude them (false)',
+					},
 				],
 			},
 			{
@@ -261,6 +282,14 @@ export class SubsplashMedia implements INodeType {
 					{
 						name: 'Live Template',
 						value: 'live-template',
+					},
+					{
+						name: 'Media Series',
+						value: 'media-series',
+					},
+					{
+						name: 'Notification',
+						value: 'notification',
 					},
 					{
 						name: 'Video',
@@ -864,6 +893,12 @@ export class SubsplashMedia implements INodeType {
 		}
 		if (filters.media_series) {
 			qs['filter[media_series]'] = filters.media_series;
+		}
+		if (filters.unlisted) {
+			qs['filter[unlisted]'] = filters.unlisted;
+		}
+		if (filters.upcoming_live !== undefined) {
+			qs['filter[upcoming_live]'] = filters.upcoming_live;
 		}
 
 		// Add sort
