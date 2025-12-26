@@ -165,8 +165,8 @@ export class SubsplashApi implements ICredentialType {
 			displayName: 'Access Token',
 			name: 'accessToken',
 			type: 'hidden',
-
 			typeOptions: {
+				password: true,
 				expirable: true,
 			},
 			default: '',
